@@ -1,5 +1,7 @@
 from __future__ import unicode_literals, print_function, division
-#TODO
+
+#Except for the pytorch part content of this file is copied from https://github.com/abisee/pointer-generator/blob/master/
+
 import sys
 
 reload(sys)

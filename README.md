@@ -3,6 +3,8 @@ pytorch implementation of "Get To The Point: Summarization with Pointer-Generato
 Done:
 1) Training with pointer generation enabled
 
+![Alt text](learning_curve.png?raw=true "Learning Curve")
+
 TO DO:
 1) Fix eval.py and decode.py
 2) Update the rouge scores and example

@@ -11,3 +11,8 @@ TO DO:
 3) Train with coverage loss enabled
 4) Update the rouge scores and example with coverage loss
 
+TO DO documentation:
+1) add requirements.txt
+2) Data generation
+3) Running script
+

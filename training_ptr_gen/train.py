@@ -3,12 +3,9 @@ from __future__ import unicode_literals, print_function, division
 import os
 import time
 
-import numpy as np
 import tensorflow as tf
 import torch
 from model import Model
-from torch import optim
-from torch.autograd import Variable
 from torch.nn.utils import clip_grad_norm
 
 from custom_adagrad import AdagradCustom
@@ -17,15 +14,15 @@ from data_util import config
 from data_util.batcher import Batcher
 from data_util.data import Vocab
 from data_util.utils import calc_running_avg_loss
+from train_util import get_input_from_batch, get_output_from_batch
 
-use_cuda = torch.cuda.is_available()
+use_cuda = config.use_gpu and torch.cuda.is_available()
 
 class Train(object):
     def __init__(self):
-        self.batch_size = config.batch_size
         self.vocab = Vocab(config.vocab_path, config.vocab_size)
         self.batcher = Batcher(config.train_data_path, self.vocab, mode='train',
-                               batch_size=self.batch_size, single_pass=False)
+                               batch_size=config.batch_size, single_pass=False)
         time.sleep(15)
 
         train_dir = os.path.join(config.log_root, 'train_%d'%(int(time.time())))
@@ -70,44 +67,9 @@ class Train(object):
         return start_iter, start_loss
 
     def train_one_batch(self, batch):
-        enc_lens_idx = np.argsort(batch.enc_lens)[::-1]
-
-        enc_batch = Variable(torch.from_numpy(batch.enc_batch[enc_lens_idx]).long())
-        enc_padding_mask = Variable(torch.from_numpy(batch.enc_padding_mask[enc_lens_idx])).float()
-        enc_lens = batch.enc_lens[enc_lens_idx]
-        extra_zeros = None
-        enc_batch_extend_vocab = None
-
-        if config.pointer_gen:
-            enc_batch_extend_vocab = Variable(torch.from_numpy(batch.enc_batch_extend_vocab[enc_lens_idx]).long())
-            #max_art_oovs is the max over all the article oov list in the batch
-            if batch.max_art_oovs > 0:
-                extra_zeros = Variable(torch.zeros((self.batch_size, batch.max_art_oovs)))
-
-        dec_batch = Variable(torch.from_numpy(batch.dec_batch[enc_lens_idx]).long())
-        dec_padding_mask = Variable(torch.from_numpy(batch.dec_padding_mask[enc_lens_idx])).float()
-        dec_lens = batch.dec_lens[enc_lens_idx]
-        max_dec_len = np.max(dec_lens)
-        dec_lens_var = Variable(torch.from_numpy(dec_lens)).float()
-
-        target_batch = Variable(torch.from_numpy(batch.target_batch[enc_lens_idx])).long()
-
-        c_t_1 = Variable(torch.zeros((self.batch_size, 2 * config.hidden_dim)))
-
-        if use_cuda:
-            enc_batch = enc_batch.cuda()
-            enc_padding_mask = enc_padding_mask.cuda()
-
-            if enc_batch_extend_vocab is not None:
-                enc_batch_extend_vocab = enc_batch_extend_vocab.cuda()
-            if extra_zeros is not None:
-                extra_zeros = extra_zeros.cuda()
-
-            dec_batch = dec_batch.cuda()
-            dec_padding_mask = dec_padding_mask.cuda()
-            dec_lens_var = dec_lens_var.cuda()
-            target_batch = target_batch.cuda()
-            c_t_1 = c_t_1.cuda()
+        enc_batch, enc_padding_mask, enc_lens, enc_batch_extend_vocab, extra_zeros, c_t_1 = \
+            get_input_from_batch(batch, use_cuda)
+        dec_batch, dec_padding_mask, max_dec_len, dec_lens_var, target_batch = get_output_from_batch(batch, use_cuda)
 
         self.optimizer.zero_grad()
 
@@ -117,7 +79,7 @@ class Train(object):
         step_losses = []
         for di in range(min(max_dec_len, config.max_dec_steps)):
             y_t_1 = dec_batch[:, di]  # Teacher forcing
-            final_dist, s_t_1,  c_t_1 = self.model.decoder(y_t_1, s_t_1,
+            final_dist, s_t_1,  c_t_1, _, _ = self.model.decoder(y_t_1, s_t_1,
                                                         encoder_outputs, enc_padding_mask, c_t_1,
                                                         extra_zeros, enc_batch_extend_vocab)
             target = target_batch[:, di]

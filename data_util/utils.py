@@ -59,3 +59,4 @@ def calc_running_avg_loss(loss, running_avg_loss, summary_writer, step, decay=0.
   loss_sum.value.add(tag=tag_name, simple_value=running_avg_loss)
   summary_writer.add_summary(loss_sum, step)
   return running_avg_loss
+

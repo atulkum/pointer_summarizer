@@ -1,6 +1,6 @@
-from __future__ import unicode_literals, print_function, division
-
 #Except for the pytorch part content of this file is copied from https://github.com/abisee/pointer-generator/blob/master/
+
+from __future__ import unicode_literals, print_function, division
 
 import sys
 
@@ -18,22 +18,25 @@ from data_util.data import Vocab
 from data_util import data, config
 from model import Model
 from data_util.utils import make_html_safe, rouge_eval, rouge_log
+from train_util import get_input_from_batch
 
 
-use_cuda = torch.cuda.is_available()
+use_cuda = config.use_gpu and torch.cuda.is_available()
 
 class Beam(object):
-  def __init__(self, tokens, log_probs, state, attn_dists, p_gens):
+  def __init__(self, tokens, log_probs, state, context, attn_dists, p_gens):
     self.tokens = tokens
     self.log_probs = log_probs
     self.state = state
+    self.context = context
     self.attn_dists = attn_dists
     self.p_gens = p_gens
 
-  def extend(self, token, log_prob, state, attn_dist, p_gen):
+  def extend(self, token, log_prob, state, context, attn_dist, p_gen):
     return Beam(tokens = self.tokens + [token],
                       log_probs = self.log_probs + [log_prob],
                       state = state,
+                      context = context,
                       attn_dists = self.attn_dists + [attn_dist],
                       p_gens = self.p_gens + [p_gen])
 
@@ -48,9 +51,7 @@ class Beam(object):
 
 class BeamSearch(object):
     def __init__(self, model_file_path):
-        self.batch_size = config.beam_size
-
-        self._decode_dir = os.path.join(config.log_root, 'decode')
+        self._decode_dir = os.path.join(config.log_root, 'decode_%d'%(int(time.time())))
         self._rouge_ref_dir = os.path.join(self._decode_dir, 'rouge_ref')
         self._rouge_dec_dir = os.path.join(self._decode_dir, 'rouge_dec_dir')
         for p in [self._decode_dir, self._rouge_ref_dir, self._rouge_dec_dir]:
@@ -58,10 +59,11 @@ class BeamSearch(object):
                 os.mkdir(p)
 
         self.vocab = Vocab(config.vocab_path, config.vocab_size)
-        self.batcher = Batcher(config.decode_data_path, self.vocab, mode='decode', batch_size=self.batch_size, single_pass=True)
-        time.sleep(5)
+        self.batcher = Batcher(config.decode_data_path, self.vocab, mode='decode',
+                               batch_size=config.beam_size, single_pass=True)
+        time.sleep(15)
 
-        self.model = Model(model_file_path)
+        self.model = Model(model_file_path, is_eval=True)
 
     def sort_beams(self, beams):
         return sorted(beams, key=lambda h: h.avg_log_prob, reverse=True)
@@ -105,27 +107,20 @@ class BeamSearch(object):
 
     def beam_search(self, batch):
         #batch should have only one example
-        enc_batch = Variable(torch.from_numpy(batch.enc_batch).long())
-        if use_cuda:
-            enc_batch= enc_batch.cuda()
-        enc_lens = batch.enc_lens
-        enc_batch_extend_vocab = Variable(torch.from_numpy(batch.enc_batch_extend_vocab).long())
-        if use_cuda:
-            enc_batch_extend_vocab = enc_batch_extend_vocab.cuda()
-        max_art_oovs = batch.max_art_oovs
+        enc_batch, enc_padding_mask, enc_lens, enc_batch_extend_vocab, extra_zeros, c_t_0 = \
+            get_input_from_batch(batch, use_cuda)
 
-        encoder_hidden = self.model.encoder.initHidden(self.batch_size)
-        encoder_outputs, encoder_hidden = self.model.encoder(enc_batch, enc_lens, encoder_hidden)
-        encoder_hidden_reduced = self.model.reduce_state(encoder_hidden)
+        encoder_outputs, encoder_hidden = self.model.encoder(enc_batch, enc_lens)
+        s_t_0 = self.model.reduce_state(encoder_hidden)
 
-        dec_h, dec_c = encoder_hidden_reduced # 1 x 2*hidden_size
+        dec_h, dec_c = s_t_0 # 1 x 2*hidden_size
         dec_h = dec_h.squeeze()
         dec_c = dec_c.squeeze()
-        #decoder batch preparation, it has beam_size example
-        #initially everything repeated
+        #decoder batch preparation, it has beam_size example initially everything is repeated
         beams = [Beam(tokens=[self.vocab.word2id(data.START_DECODING)],
                       log_probs=[0.0],
                       state=(dec_h[0], dec_c[0]),
+                      context = c_t_0[0],
                       attn_dists=[],
                       p_gens=[]) for _ in xrange(config.beam_size)]
         results = []
@@ -133,28 +128,31 @@ class BeamSearch(object):
         while steps < config.max_dec_steps and len(results) < config.beam_size:
             latest_tokens = [h.latest_token for h in beams]
             latest_tokens = [t if t < self.vocab.size() else self.vocab.word2id(data.UNKNOWN_TOKEN) for t in latest_tokens]
-            decoder_input = Variable(torch.LongTensor(latest_tokens))
+            y_t_1 = Variable(torch.LongTensor(latest_tokens))
             if use_cuda:
-                decoder_input = decoder_input.cuda()
+                y_t_1 = y_t_1.cuda()
             all_state_h =[]
             all_state_c = []
+
+            all_context = []
+
             for h in beams:
                 state_h, state_c = h.state
                 all_state_h.append(state_h)
                 all_state_c.append(state_c)
 
-            decoder_hidden = (torch.stack(all_state_h, 0).unsqueeze(0), torch.stack(all_state_c, 0).unsqueeze(0))
+                all_context.append(h.context)
 
-            final_dist, decoder_hidden, attn_dist, p_gen, _ = self.model.decoder(decoder_input,
-                                                                             decoder_hidden,
-                                                                             encoder_outputs,
-                                                                             max_art_oovs,
-                                                                             enc_batch_extend_vocab,
-                                                                             coverage=None)
+            s_t_1 = (torch.stack(all_state_h, 0).unsqueeze(0), torch.stack(all_state_c, 0).unsqueeze(0))
+            c_t_1 = torch.stack(all_context, 0)
+
+            final_dist, s_t, c_t, attn_dist, p_gen = self.model.decoder(y_t_1, s_t_1,
+                                                        encoder_outputs, enc_padding_mask, c_t_1,
+                                                        extra_zeros, enc_batch_extend_vocab)
 
             topk_log_probs, topk_ids = torch.topk(final_dist, config.beam_size * 2)
 
-            dec_h, dec_c = decoder_hidden
+            dec_h, dec_c = s_t
             dec_h = dec_h.squeeze()
             dec_c = dec_c.squeeze()
 
@@ -166,6 +164,7 @@ class BeamSearch(object):
                     new_beam = h.extend(token=topk_ids[i, j].data[0],
                                    log_prob=topk_log_probs[i, j].data[0],
                                    state=(dec_h[i], dec_c[i]),
+                                   context= c_t[i],
                                    attn_dist=attn_dist[i],
                                    p_gen=p_gen[i])
                     all_beams.append(new_beam)

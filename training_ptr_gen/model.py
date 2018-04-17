@@ -6,7 +6,8 @@ import torch.nn.functional as F
 from torch.nn.utils.rnn import pack_padded_sequence, pad_packed_sequence
 from data_util import config
 from numpy import random
-use_cuda = torch.cuda.is_available()
+
+use_cuda = config.use_gpu and torch.cuda.is_available()
 
 random.seed(123)
 torch.manual_seed(123)
@@ -165,10 +166,10 @@ class Decoder(nn.Module):
         else:
             final_dist = vocab_dist
 
-        return final_dist, s_t, c_t
+        return final_dist, s_t, c_t, attn_dist, p_gen
 
 class Model(object):
-    def __init__(self, model_file_path=None):
+    def __init__(self, model_file_path=None, is_eval=False):
         encoder = Encoder()
         decoder = Decoder()
         reduce_state = ReduceState()
@@ -180,10 +181,15 @@ class Model(object):
             encoder = encoder.cuda()
             decoder = decoder.cuda()
             reduce_state = reduce_state.cuda()
+        if is_eval:
+            encoder = encoder.eval()
+            decoder = decoder.eval()
+            reduce_state = reduce_state.eval()
 
         self.encoder = encoder
         self.decoder = decoder
         self.reduce_state = reduce_state
+
         if model_file_path is not None:
             state = torch.load(model_file_path, map_location= lambda storage, location: storage)
             self.encoder.load_state_dict(state['encoder_state_dict'])

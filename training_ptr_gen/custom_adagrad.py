@@ -79,7 +79,7 @@ class AdagradCustom(Optimizer):
                     std_values = std._values().sqrt_().add_(1e-10)
                     p.data.add_(-clr, make_sparse(grad_values / std_values))
                 else:
-                    state['sum'].addcmul_(1, grad, grad)
+                    state['sum'].addcmul_(1.0, grad, grad)
                     std = state['sum'].sqrt().add_(1e-10)
                     p.data.addcdiv_(-clr, grad, std)
 

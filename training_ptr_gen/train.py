@@ -63,6 +63,12 @@ class Train(object):
 
             start_iter = state['iter']
             start_loss = state['current_loss']
+            if use_cuda:
+                for state in self.optimizer.state.values():
+                    for k, v in state.items():
+                        if torch.is_tensor(v):
+                            state[k] = v.cuda()
+
 
         return start_iter, start_loss
 

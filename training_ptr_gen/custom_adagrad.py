@@ -20,7 +20,8 @@ class AdagradCustom(Optimizer):
     """
 
     def __init__(self, params, lr=1e-2, lr_decay=0, weight_decay=0, initial_accumulator_value=0):
-        defaults = dict(lr=lr, lr_decay=lr_decay, weight_decay=weight_decay, initial_accumulator_value=0.1)
+        defaults = dict(lr=lr, lr_decay=lr_decay, weight_decay=weight_decay, 
+                    initial_accumulator_value=initial_accumulator_value)
         super(AdagradCustom, self).__init__(params, defaults)
 
         for group in self.param_groups:
@@ -79,7 +80,7 @@ class AdagradCustom(Optimizer):
                     std_values = std._values().sqrt_().add_(1e-10)
                     p.data.add_(-clr, make_sparse(grad_values / std_values))
                 else:
-                    state['sum'].addcmul_(1.0, grad, grad)
+                    state['sum'].addcmul_(1, grad, grad)
                     std = state['sum'].sqrt().add_(1e-10)
                     p.data.addcdiv_(-clr, grad, std)
 

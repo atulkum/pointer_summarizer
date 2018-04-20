@@ -10,10 +10,8 @@ How to run training:
 2) Run start_train.sh, you might need to change some path and parameters in data_util/config.py
 
 TO DO:
-1) Fix eval.py and decode.py
-2) Update the rouge scores and example
-3) Train with coverage loss enabled
-4) Update the rouge scores and example with coverage loss
+1) Train with coverage loss enabled
+2) Update the rouge scores and example with coverage loss
 
 TO DO documentation:
 1) add requirements.txt

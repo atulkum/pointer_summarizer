@@ -78,10 +78,12 @@ class Attention(nn.Module):
         super(Attention, self).__init__()
         # attention
         self.W_h = nn.Linear(config.hidden_dim * 2, config.hidden_dim*2, bias=False)
+        if config.is_coverage:
+            self.W_c = nn.Linear(1, config.hidden_dim * 2, bias=False)
         self.decode_proj = nn.Linear(config.hidden_dim * 2, config.hidden_dim * 2)
         self.v = nn.Linear(config.hidden_dim * 2, 1, bias=False)
 
-    def forward(self, s_t_hat, encoder_outputs, enc_padding_mask):
+    def forward(self, s_t_hat, encoder_outputs, enc_padding_mask, coverage):
         h, seq_lens = pad_packed_sequence(encoder_outputs, batch_first=True)  # h dim = B x t_k x n
         h = h.contiguous()
         b, t_k, n = list(h.size())
@@ -92,7 +94,13 @@ class Attention(nn.Module):
         dec_fea_expanded = dec_fea.unsqueeze(1).expand(b, t_k, n).contiguous() # B x t_k x 2*hidden_dim
         dec_fea_expanded = dec_fea_expanded.view(-1, n)  # B * t_k x 2*hidden_dim
 
-        e = F.tanh(encoder_feature + dec_fea_expanded) # B * t_k x 2*hidden_dim
+        att_features = encoder_feature + dec_fea_expanded # B * t_k x 2*hidden_dim
+        if config.is_coverage:
+            coverage_input = coverage.view(-1, 1)  # B * t_k x 1
+            coverage_feature = self.W_c(coverage_input)  # B * t_k x 2*hidden_dim
+            att_features = att_features + coverage_feature
+
+        e = F.tanh(att_features) # B * t_k x 2*hidden_dim
         scores = self.v(e)  # B * t_k x 1
         scores = scores.view(-1, t_k)  # B x t_k
 
@@ -107,7 +115,11 @@ class Attention(nn.Module):
 
         attn_dist = attn_dist.view(-1, t_k)  # B x t_k
 
-        return c_t, attn_dist
+        if config.is_coverage:
+            coverage = coverage.view(-1, t_k)
+            coverage = coverage + attn_dist
+
+        return c_t, attn_dist, coverage
 
 class Decoder(nn.Module):
     def __init__(self):
@@ -130,7 +142,9 @@ class Decoder(nn.Module):
         self.out2 = nn.Linear(config.hidden_dim, config.vocab_size)
         init_linear_wt(self.out2)
 
-    def forward(self, y_t_1, s_t_1, encoder_outputs, enc_padding_mask, c_t_1, extra_zeros, enc_batch_extend_vocab):
+    def forward(self, y_t_1, s_t_1, encoder_outputs, enc_padding_mask,
+                c_t_1, extra_zeros, enc_batch_extend_vocab, coverage):
+
         y_t_1_embd = self.embedding(y_t_1)
 
         x = self.x_context(torch.cat((c_t_1, y_t_1_embd), 1))
@@ -139,7 +153,8 @@ class Decoder(nn.Module):
         h_decoder, c_decoder = s_t
         s_t_hat = torch.cat((h_decoder.view(-1, config.hidden_dim),
                              c_decoder.view(-1, config.hidden_dim)), 1)  # B x 2*hidden_dim
-        c_t, attn_dist = self.attention_network(s_t_hat, encoder_outputs, enc_padding_mask)
+        c_t, attn_dist, coverage = self.attention_network(s_t_hat, encoder_outputs,
+                                                          enc_padding_mask, coverage)
 
         p_gen = None
         if config.pointer_gen:
@@ -166,7 +181,7 @@ class Decoder(nn.Module):
         else:
             final_dist = vocab_dist
 
-        return final_dist, s_t, c_t, attn_dist, p_gen
+        return final_dist, s_t, c_t, attn_dist, p_gen, coverage
 
 class Model(object):
     def __init__(self, model_file_path=None, is_eval=False):
@@ -193,7 +208,7 @@ class Model(object):
         if model_file_path is not None:
             state = torch.load(model_file_path, map_location= lambda storage, location: storage)
             self.encoder.load_state_dict(state['encoder_state_dict'])
-            self.decoder.load_state_dict(state['decoder_state_dict'])
+            self.decoder.load_state_dict(state['decoder_state_dict'], strict=False)
             self.reduce_state.load_state_dict(state['reduce_state_dict'])
 
 

@@ -24,21 +24,19 @@ from train_util import get_input_from_batch
 use_cuda = config.use_gpu and torch.cuda.is_available()
 
 class Beam(object):
-  def __init__(self, tokens, log_probs, state, context, attn_dists, p_gens):
+  def __init__(self, tokens, log_probs, state, context, coverage):
     self.tokens = tokens
     self.log_probs = log_probs
     self.state = state
     self.context = context
-    self.attn_dists = attn_dists
-    self.p_gens = p_gens
+    self.coverage = coverage
 
-  def extend(self, token, log_prob, state, context, attn_dist, p_gen):
+  def extend(self, token, log_prob, state, context, coverage):
     return Beam(tokens = self.tokens + [token],
                       log_probs = self.log_probs + [log_prob],
                       state = state,
                       context = context,
-                      attn_dists = self.attn_dists + [attn_dist],
-                      p_gens = self.p_gens + [p_gen])
+                      coverage = coverage)
 
   @property
   def latest_token(self):
@@ -107,7 +105,7 @@ class BeamSearch(object):
 
     def beam_search(self, batch):
         #batch should have only one example
-        enc_batch, enc_padding_mask, enc_lens, enc_batch_extend_vocab, extra_zeros, c_t_0 = \
+        enc_batch, enc_padding_mask, enc_lens, enc_batch_extend_vocab, extra_zeros, c_t_0, coverage_t_0 = \
             get_input_from_batch(batch, use_cuda)
 
         encoder_outputs, encoder_hidden = self.model.encoder(enc_batch, enc_lens)
@@ -121,13 +119,13 @@ class BeamSearch(object):
                       log_probs=[0.0],
                       state=(dec_h[0], dec_c[0]),
                       context = c_t_0[0],
-                      attn_dists=[],
-                      p_gens=[]) for _ in xrange(config.beam_size)]
+                      coverage=coverage_t_0[0]) for _ in xrange(config.beam_size)]
         results = []
         steps = 0
         while steps < config.max_dec_steps and len(results) < config.beam_size:
             latest_tokens = [h.latest_token for h in beams]
-            latest_tokens = [t if t < self.vocab.size() else self.vocab.word2id(data.UNKNOWN_TOKEN) for t in latest_tokens]
+            latest_tokens = [t if t < self.vocab.size() else self.vocab.word2id(data.UNKNOWN_TOKEN) \
+                             for t in latest_tokens]
             y_t_1 = Variable(torch.LongTensor(latest_tokens))
             if use_cuda:
                 y_t_1 = y_t_1.cuda()
@@ -135,6 +133,7 @@ class BeamSearch(object):
             all_state_c = []
 
             all_context = []
+            all_coverage = []
 
             for h in beams:
                 state_h, state_c = h.state
@@ -142,13 +141,15 @@ class BeamSearch(object):
                 all_state_c.append(state_c)
 
                 all_context.append(h.context)
+                all_coverage.append(h.coverage)
 
             s_t_1 = (torch.stack(all_state_h, 0).unsqueeze(0), torch.stack(all_state_c, 0).unsqueeze(0))
             c_t_1 = torch.stack(all_context, 0)
+            coverage_t_1 = torch.stack(all_coverage, 0)
 
-            final_dist, s_t, c_t, attn_dist, p_gen = self.model.decoder(y_t_1, s_t_1,
+            final_dist, s_t, c_t, attn_dist, p_gen, coverage_t = self.model.decoder(y_t_1, s_t_1,
                                                         encoder_outputs, enc_padding_mask, c_t_1,
-                                                        extra_zeros, enc_batch_extend_vocab)
+                                                        extra_zeros, enc_batch_extend_vocab, coverage_t_1)
 
             topk_log_probs, topk_ids = torch.topk(final_dist, config.beam_size * 2)
 
@@ -165,8 +166,7 @@ class BeamSearch(object):
                                    log_prob=topk_log_probs[i, j].data[0],
                                    state=(dec_h[i], dec_c[i]),
                                    context= c_t[i],
-                                   attn_dist=attn_dist[i],
-                                   p_gen=p_gen[i])
+                                   coverage=coverage_t[i])
                     all_beams.append(new_beam)
 
             beams = []

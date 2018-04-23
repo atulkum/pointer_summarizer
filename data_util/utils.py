@@ -60,3 +60,32 @@ def calc_running_avg_loss(loss, running_avg_loss, summary_writer, step, decay=0.
   summary_writer.add_summary(loss_sum, step)
   return running_avg_loss
 
+
+def write_for_rouge(reference_sents, decoded_words, ex_index,
+                    _rouge_ref_dir, _rouge_dec_dir):
+  decoded_sents = []
+  while len(decoded_words) > 0:
+    try:
+      fst_period_idx = decoded_words.index(".")
+    except ValueError:
+      fst_period_idx = len(decoded_words)
+    sent = decoded_words[:fst_period_idx + 1]
+    decoded_words = decoded_words[fst_period_idx + 1:]
+    decoded_sents.append(' '.join(sent))
+
+  # pyrouge calls a perl script that puts the data into HTML files.
+  # Therefore we need to make our output HTML safe.
+  decoded_sents = [make_html_safe(w) for w in decoded_sents]
+  reference_sents = [make_html_safe(w) for w in reference_sents]
+
+  ref_file = os.path.join(_rouge_ref_dir, "%06d_reference.txt" % ex_index)
+  decoded_file = os.path.join(_rouge_dec_dir, "%06d_decoded.txt" % ex_index)
+
+  with open(ref_file, "w") as f:
+    for idx, sent in enumerate(reference_sents):
+      f.write(sent) if idx == len(reference_sents) - 1 else f.write(sent + "\n")
+  with open(decoded_file, "w") as f:
+    for idx, sent in enumerate(decoded_sents):
+      f.write(sent) if idx == len(decoded_sents) - 1 else f.write(sent + "\n")
+
+  print("Wrote example %i to file" % ex_index)

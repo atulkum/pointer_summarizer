@@ -25,7 +25,7 @@ class Train(object):
                                batch_size=config.batch_size, single_pass=False)
         time.sleep(15)
 
-        train_dir = os.path.join(config.log_root, 'train_%d'%(int(time.time())))
+        train_dir = os.path.join(config.log_root, 'train_%d' % (int(time.time())))
         if not os.path.exists(train_dir):
             os.mkdir(train_dir)
 
@@ -80,8 +80,10 @@ class Train(object):
 
         self.optimizer.zero_grad()
 
-        encoder_outputs, encoder_hidden = self.model.encoder(enc_batch, enc_lens)
+        encoder_outputs, encoder_hidden, max_encoder_output = self.model.encoder(enc_batch, enc_lens)
         s_t_1 = self.model.reduce_state(encoder_hidden)
+        if config.use_maxpool_init_ctx:
+            c_t_1 = max_encoder_output
 
         step_losses = []
         for di in range(min(max_dec_len, config.max_dec_steps)):
@@ -95,7 +97,7 @@ class Train(object):
             step_loss = -torch.log(gold_probs + config.eps)
             if config.is_coverage:
                 step_coverage_loss = torch.sum(torch.min(attn_dist, coverage), 1)
-                step_loss = step_loss + config.cov_loss_wt*step_coverage_loss
+                step_loss = step_loss + config.cov_loss_wt * step_coverage_loss
             step_mask = dec_padding_mask[:, di]
             step_loss = step_loss * step_mask
             step_losses.append(step_loss)

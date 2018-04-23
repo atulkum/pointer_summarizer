@@ -17,7 +17,7 @@ from data_util.batcher import Batcher
 from data_util.data import Vocab
 from data_util import data, config
 from model import Model
-from data_util.utils import make_html_safe, rouge_eval, rouge_log
+from data_util.utils import write_for_rouge, rouge_eval, rouge_log
 from train_util import get_input_from_batch
 
 
@@ -49,7 +49,7 @@ class Beam(object):
 
 class BeamSearch(object):
     def __init__(self, model_file_path):
-        self._decode_dir = os.path.join(config.log_root, 'decode_%d'%(int(time.time())))
+        self._decode_dir = os.path.join(config.log_root, 'decode_%d' % (int(time.time())))
         self._rouge_ref_dir = os.path.join(self._decode_dir, 'rouge_ref')
         self._rouge_dec_dir = os.path.join(self._decode_dir, 'rouge_dec_dir')
         for p in [self._decode_dir, self._rouge_ref_dir, self._rouge_dec_dir]:
@@ -89,7 +89,8 @@ class BeamSearch(object):
 
             original_abstract_sents = batch.original_abstracts_sents[0]
 
-            self.write_for_rouge(original_abstract_sents, decoded_words, counter)
+            write_for_rouge(original_abstract_sents, decoded_words, counter,
+                            self._rouge_ref_dir, self._rouge_dec_dir)
             counter += 1
             if counter % 10000:
                 print('%d example in %d sec'%(counter, time.time() - start))
@@ -108,18 +109,23 @@ class BeamSearch(object):
         enc_batch, enc_padding_mask, enc_lens, enc_batch_extend_vocab, extra_zeros, c_t_0, coverage_t_0 = \
             get_input_from_batch(batch, use_cuda)
 
-        encoder_outputs, encoder_hidden = self.model.encoder(enc_batch, enc_lens)
+        encoder_outputs, encoder_hidden, max_encoder_output = self.model.encoder(enc_batch, enc_lens)
         s_t_0 = self.model.reduce_state(encoder_hidden)
+
+        if config.use_maxpool_init_ctx:
+            c_t_0 = max_encoder_output
 
         dec_h, dec_c = s_t_0 # 1 x 2*hidden_size
         dec_h = dec_h.squeeze()
         dec_c = dec_c.squeeze()
+
         #decoder batch preparation, it has beam_size example initially everything is repeated
         beams = [Beam(tokens=[self.vocab.word2id(data.START_DECODING)],
                       log_probs=[0.0],
                       state=(dec_h[0], dec_c[0]),
                       context = c_t_0[0],
-                      coverage=coverage_t_0[0]) for _ in xrange(config.beam_size)]
+                      coverage=(coverage_t_0[0] if config.is_coverage else None))
+                 for _ in xrange(config.beam_size)]
         results = []
         steps = 0
         while steps < config.max_dec_steps and len(results) < config.beam_size:
@@ -133,7 +139,6 @@ class BeamSearch(object):
             all_state_c = []
 
             all_context = []
-            all_coverage = []
 
             for h in beams:
                 state_h, state_c = h.state
@@ -141,11 +146,16 @@ class BeamSearch(object):
                 all_state_c.append(state_c)
 
                 all_context.append(h.context)
-                all_coverage.append(h.coverage)
 
             s_t_1 = (torch.stack(all_state_h, 0).unsqueeze(0), torch.stack(all_state_c, 0).unsqueeze(0))
             c_t_1 = torch.stack(all_context, 0)
-            coverage_t_1 = torch.stack(all_coverage, 0)
+
+            coverage_t_1 = None
+            if config.is_coverage:
+                all_coverage = []
+                for h in beams:
+                    all_coverage.append(h.coverage)
+                coverage_t_1 = torch.stack(all_coverage, 0)
 
             final_dist, s_t, c_t, attn_dist, p_gen, coverage_t = self.model.decoder(y_t_1, s_t_1,
                                                         encoder_outputs, enc_padding_mask, c_t_1,
@@ -161,12 +171,16 @@ class BeamSearch(object):
             num_orig_beams = 1 if steps == 0 else len(beams)
             for i in xrange(num_orig_beams):
                 h = beams[i]
+                state_i = (dec_h[i], dec_c[i])
+                context_i = c_t[i]
+                coverage_i = (coverage_t[i] if config.is_coverage else None)
+
                 for j in xrange(config.beam_size * 2):  # for each of the top 2*beam_size hyps:
                     new_beam = h.extend(token=topk_ids[i, j].data[0],
                                    log_prob=topk_log_probs[i, j].data[0],
-                                   state=(dec_h[i], dec_c[i]),
-                                   context= c_t[i],
-                                   coverage=coverage_t[i])
+                                   state=state_i,
+                                   context=context_i,
+                                   coverage=coverage_i)
                     all_beams.append(new_beam)
 
             beams = []
@@ -187,34 +201,6 @@ class BeamSearch(object):
         beams_sorted = self.sort_beams(results)
 
         return beams_sorted[0]
-
-    def write_for_rouge(self, reference_sents, decoded_words, ex_index):
-        decoded_sents = []
-        while len(decoded_words) > 0:
-            try:
-                fst_period_idx = decoded_words.index(".")
-            except ValueError:
-                fst_period_idx = len(decoded_words)
-            sent = decoded_words[:fst_period_idx + 1]
-            decoded_words = decoded_words[fst_period_idx + 1:]
-            decoded_sents.append(' '.join(sent))
-
-        # pyrouge calls a perl script that puts the data into HTML files.
-        # Therefore we need to make our output HTML safe.
-        decoded_sents = [make_html_safe(w) for w in decoded_sents]
-        reference_sents = [make_html_safe(w) for w in reference_sents]
-
-        ref_file = os.path.join(self._rouge_ref_dir, "%06d_reference.txt" % ex_index)
-        decoded_file = os.path.join(self._rouge_dec_dir, "%06d_decoded.txt" % ex_index)
-
-        with open(ref_file, "w") as f:
-            for idx, sent in enumerate(reference_sents):
-                f.write(sent) if idx == len(reference_sents) - 1 else f.write(sent + "\n")
-        with open(decoded_file, "w") as f:
-            for idx, sent in enumerate(decoded_sents):
-                f.write(sent) if idx == len(decoded_sents) - 1 else f.write(sent + "\n")
-
-        print("Wrote example %i to file" % ex_index)
 
 if __name__ == '__main__':
     model_filename = sys.argv[1]

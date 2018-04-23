@@ -55,7 +55,11 @@ class Encoder(nn.Module):
         packed = pack_padded_sequence(embedded, seq_lens, batch_first=True)
         output, hidden = self.lstm(packed)
 
-        return output, hidden
+        h, _ = pad_packed_sequence(output, batch_first=True)  # h dim = B x t_k x n
+        h = h.contiguous()
+        max_h, _ = h.max(dim=1)
+
+        return h, hidden, max_h
 
 class ReduceState(nn.Module):
     def __init__(self):
@@ -77,15 +81,13 @@ class Attention(nn.Module):
     def __init__(self):
         super(Attention, self).__init__()
         # attention
-        self.W_h = nn.Linear(config.hidden_dim * 2, config.hidden_dim*2, bias=False)
+        self.W_h = nn.Linear(config.hidden_dim * 2, config.hidden_dim * 2, bias=False)
         if config.is_coverage:
             self.W_c = nn.Linear(1, config.hidden_dim * 2, bias=False)
         self.decode_proj = nn.Linear(config.hidden_dim * 2, config.hidden_dim * 2)
         self.v = nn.Linear(config.hidden_dim * 2, 1, bias=False)
 
-    def forward(self, s_t_hat, encoder_outputs, enc_padding_mask, coverage):
-        h, seq_lens = pad_packed_sequence(encoder_outputs, batch_first=True)  # h dim = B x t_k x n
-        h = h.contiguous()
+    def forward(self, s_t_hat, h, enc_padding_mask, coverage):
         b, t_k, n = list(h.size())
         h = h.view(-1, n)  # B * t_k x 2*hidden_dim
         encoder_feature = self.W_h(h)
@@ -146,7 +148,6 @@ class Decoder(nn.Module):
                 c_t_1, extra_zeros, enc_batch_extend_vocab, coverage):
 
         y_t_1_embd = self.embedding(y_t_1)
-
         x = self.x_context(torch.cat((c_t_1, y_t_1_embd), 1))
         lstm_out, s_t = self.lstm(x.unsqueeze(1), s_t_1)
 
@@ -165,7 +166,7 @@ class Decoder(nn.Module):
         output = torch.cat((lstm_out.view(-1, config.hidden_dim), c_t), 1) # B x hidden_dim * 3
         output = self.out1(output) # B x hidden_dim
 
-        output = F.relu(output)
+        #output = F.relu(output)
 
         output = self.out2(output) # B x vocab_size
         vocab_dist = F.softmax(output, dim=1)
@@ -191,15 +192,15 @@ class Model(object):
 
         # shared the embedding between encoder and decoder
         decoder.embedding.weight = encoder.embedding.weight
+        if is_eval:
+            encoder = encoder.eval()
+            decoder = decoder.eval()
+            reduce_state = reduce_state.eval()
 
         if use_cuda:
             encoder = encoder.cuda()
             decoder = decoder.cuda()
             reduce_state = reduce_state.cuda()
-        if is_eval:
-            encoder = encoder.eval()
-            decoder = decoder.eval()
-            reduce_state = reduce_state.eval()
 
         self.encoder = encoder
         self.decoder = decoder
@@ -210,5 +211,3 @@ class Model(object):
             self.encoder.load_state_dict(state['encoder_state_dict'])
             self.decoder.load_state_dict(state['decoder_state_dict'], strict=False)
             self.reduce_state.load_state_dict(state['reduce_state_dict'])
-
-

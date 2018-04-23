@@ -21,7 +21,7 @@ class Evaluate(object):
     def __init__(self, model_file_path):
         self.vocab = Vocab(config.vocab_path, config.vocab_size)
         self.batcher = Batcher(config.eval_data_path, self.vocab, mode='eval',
-                               batch_size=config.batch_size, single_pass=False)
+                               batch_size=config.batch_size, single_pass=True)
         time.sleep(15)
 
         eval_dir = os.path.join(config.log_root, 'eval_%d' % (int(time.time())))
@@ -37,8 +37,11 @@ class Evaluate(object):
         dec_batch, dec_padding_mask, max_dec_len, dec_lens_var, target_batch = \
             get_output_from_batch(batch, use_cuda)
 
-        encoder_outputs, encoder_hidden = self.model.encoder(enc_batch, enc_lens)
+        encoder_outputs, encoder_hidden, max_encoder_output = self.model.encoder(enc_batch, enc_lens)
         s_t_1 = self.model.reduce_state(encoder_hidden)
+
+        if config.use_maxpool_init_ctx:
+            c_t_1 = max_encoder_output
 
         step_losses = []
         for di in range(min(max_dec_len, config.max_dec_steps)):
@@ -51,7 +54,7 @@ class Evaluate(object):
             step_loss = -torch.log(gold_probs + config.eps)
             if config.is_coverage:
                 step_coverage_loss = torch.sum(torch.min(attn_dist, coverage), 1)
-                step_loss = step_loss + config.cov_loss_wt*step_coverage_loss
+                step_loss = step_loss + config.cov_loss_wt * step_coverage_loss
 
             step_mask = dec_padding_mask[:, di]
             step_loss = step_loss * step_mask
@@ -67,7 +70,7 @@ class Evaluate(object):
         running_avg_loss, iter = 0, 0
         start = time.time()
         batch = self.batcher.next_batch()
-        while iter < 50000: #batch is not None:
+        while batch is not None:
             loss = self.eval_one_batch(batch)
 
             running_avg_loss = calc_running_avg_loss(loss, running_avg_loss, self.summary_writer, iter)
@@ -78,7 +81,7 @@ class Evaluate(object):
             print_interval = 1000
             if iter % print_interval == 0:
                 print('steps %d, seconds for %d batch: %.2f , loss: %f' % (
-                iter, print_interval, time.time() - start, loss))
+                iter, print_interval, time.time() - start, running_avg_loss))
                 start = time.time()
             batch = self.batcher.next_batch()
 

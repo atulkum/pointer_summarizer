@@ -1,7 +1,8 @@
 pytorch implementation of *[Get To The Point: Summarization with Pointer-Generator Networks](https://arxiv.org/abs/1704.04368)*
 
 Done:
-1) Training with pointer generation enabled
+* Training with pointer generation enabled
+--------------------------------------------
 
 After training for 500k iterations
 
@@ -25,9 +26,9 @@ rouge_l_precision: 0.3231 with confidence interval (0.3205, 0.3256)
 
 You can download the model [here](https://drive.google.com/open?id=1kiarI44mVZCmadqgTnToo1jG-mRCzMaB).
 
-1) Train with coverage loss enabled
-
-TODO
+* Train with coverage loss enabled 
+--------------------------------------------
+    TODO
 
 How to run training:
 1) Follow data generation instruction from https://github.com/abisee/cnn-dailymail
@@ -35,6 +36,4 @@ How to run training:
 
 pytorch 0.3 is used
 
-TO DO documentation:
-1) add requirements.txt
 

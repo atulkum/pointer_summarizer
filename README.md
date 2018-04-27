@@ -36,8 +36,9 @@ How to run training:
 2) Run start_train.sh, you might need to change some path and parameters in data_util/config.py
 3) For training run start_train.sh, for decoding run start_decode.sh, and for evaluating run run_eval.sh
 
-tested on pytorch 0.3 
-You need to setup [pyrouge](https://github.com/andersjo/pyrouge) to get the rouge score
+Note:
+* It is tested on pytorch 0.3 
+* You need to setup [pyrouge](https://github.com/andersjo/pyrouge) to get the rouge score
 
 
 

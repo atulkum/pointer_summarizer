@@ -19,7 +19,7 @@ rouge_l_f_score: 0.3202 with confidence interval (0.3179, 0.3225)
 rouge_l_recall: 0.3399 with confidence interval (0.3374, 0.3426)
 rouge_l_precision: 0.3231 with confidence interval (0.3205, 0.3256)
 ```
-#![Alt text](learning_curve.png?raw=true "Learning Curve")
+
 
 How to run training:
 1) Follow data generation instruction from https://github.com/abisee/cnn-dailymail

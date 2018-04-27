@@ -3,7 +3,7 @@ pytorch implementation of *[Get To The Point: Summarization with Pointer-Generat
 Training with pointer generation enabled
 --------------------------------------------
 
-After training for 500k iterations
+After training for 500k iterations (batch size 8)
 
 ```
 ROUGE-1:

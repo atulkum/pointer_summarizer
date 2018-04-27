@@ -49,7 +49,8 @@ class Beam(object):
 
 class BeamSearch(object):
     def __init__(self, model_file_path):
-        self._decode_dir = os.path.join(config.log_root, 'decode_%d' % (int(time.time())))
+        model_name = os.path.basename(model_file_path)
+        self._decode_dir = os.path.join(config.log_root, 'decode_%s' % (model_name))
         self._rouge_ref_dir = os.path.join(self._decode_dir, 'rouge_ref')
         self._rouge_dec_dir = os.path.join(self._decode_dir, 'rouge_dec_dir')
         for p in [self._decode_dir, self._rouge_ref_dir, self._rouge_dec_dir]:
@@ -92,7 +93,7 @@ class BeamSearch(object):
             write_for_rouge(original_abstract_sents, decoded_words, counter,
                             self._rouge_ref_dir, self._rouge_dec_dir)
             counter += 1
-            if counter % 10000:
+            if counter % 1000 == 0:
                 print('%d example in %d sec'%(counter, time.time() - start))
                 start = time.time()
 

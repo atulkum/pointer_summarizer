@@ -2,7 +2,8 @@ import os
 
 root_dir = os.path.expanduser("~")
 
-train_data_path = os.path.join(root_dir, "ptr_nw/cnn-dailymail-master/finished_files/train.bin")
+#train_data_path = os.path.join(root_dir, "ptr_nw/cnn-dailymail-master/finished_files/train.bin")
+train_data_path = os.path.join(root_dir, "ptr_nw/cnn-dailymail-master/finished_files/chunked/train_*")
 eval_data_path = os.path.join(root_dir, "ptr_nw/cnn-dailymail-master/finished_files/val.bin")
 decode_data_path = os.path.join(root_dir, "ptr_nw/cnn-dailymail-master/finished_files/test.bin")
 vocab_path = os.path.join(root_dir, "ptr_nw/cnn-dailymail-master/finished_files/vocab")
@@ -33,6 +34,6 @@ max_iterations = 500000
 
 use_gpu=True
 
-lr_coverage=0.05
+lr_coverage=0.15
 
 use_maxpool_init_ctx = False

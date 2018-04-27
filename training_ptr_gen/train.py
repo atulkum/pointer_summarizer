@@ -133,7 +133,7 @@ class Train(object):
                 print('steps %d, seconds for %d batch: %.2f , loss: %f' % (iter, print_interval,
                                                                            time.time() - start, loss))
                 start = time.time()
-            if iter % 10000 == 0:
+            if iter % 5000 == 0:
                 self.save_model(running_avg_loss, iter)
 
 if __name__ == '__main__':

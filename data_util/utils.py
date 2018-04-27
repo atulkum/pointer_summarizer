@@ -88,4 +88,4 @@ def write_for_rouge(reference_sents, decoded_words, ex_index,
     for idx, sent in enumerate(decoded_sents):
       f.write(sent) if idx == len(decoded_sents) - 1 else f.write(sent + "\n")
 
-  print("Wrote example %i to file" % ex_index)
+  #print("Wrote example %i to file" % ex_index)

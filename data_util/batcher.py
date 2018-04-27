@@ -168,9 +168,9 @@ class Batcher(object):
       self._bucketing_cache_size = 1 # only load one batch's worth of examples before bucketing; this essentially means no bucketing
       self._finished_reading = False # this will tell us when we're finished reading the dataset
     else:
-      self._num_example_q_threads = 16 # num threads to fill example queue
-      self._num_batch_q_threads = 4  # num threads to fill batch queue
-      self._bucketing_cache_size = 100 # how many batches-worth of examples to load into cache before bucketing
+      self._num_example_q_threads = 1 #16 # num threads to fill example queue
+      self._num_batch_q_threads = 1 #4  # num threads to fill batch queue
+      self._bucketing_cache_size = 1 #100 # how many batches-worth of examples to load into cache before bucketing
 
     # Start the threads that load the queues
     self._example_q_threads = []
@@ -232,7 +232,7 @@ class Batcher(object):
         inputs = []
         for _ in xrange(self.batch_size * self._bucketing_cache_size):
           inputs.append(self._example_queue.get())
-        inputs = sorted(inputs, key=lambda inp: inp.enc_len) # sort by length of encoder sequence
+        inputs = sorted(inputs, key=lambda inp: inp.enc_len, reverse=True) # sort by length of encoder sequence
 
         # Group the sorted Examples into batches, optionally shuffle the batches, and place in the batch queue.
         batches = []

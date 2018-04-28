@@ -1,5 +1,30 @@
 pytorch implementation of *[Get To The Point: Summarization with Pointer-Generator Networks](https://arxiv.org/abs/1704.04368)*
 
+Train with pointer generation + coverage loss enabled 
+--------------------------------------------
+After training for 100k iterations with coverage loss enabled (batch size 8)
+
+```
+ROUGE-1:
+rouge_1_f_score: 0.3829 with confidence interval (0.3807, 0.3853)
+rouge_1_recall: 0.4199 with confidence interval (0.4175, 0.4227)
+rouge_1_precision: 0.3745 with confidence interval (0.3718, 0.3772)
+
+ROUGE-2:
+rouge_2_f_score: 0.1666 with confidence interval (0.1644, 0.1689)
+rouge_2_recall: 0.1821 with confidence interval (0.1797, 0.1846)
+rouge_2_precision: 0.1638 with confidence interval (0.1615, 0.1660)
+
+ROUGE-l:
+rouge_l_f_score: 0.3514 with confidence interval (0.3492, 0.3537)
+rouge_l_recall: 0.3850 with confidence interval (0.3827, 0.3877)
+rouge_l_precision: 0.3441 with confidence interval (0.3414, 0.3466)
+```
+
+![Alt text](learning_curve_coverage.png?raw=true "Learning Curve with coverage loss")
+
+You can download the model [here](https://drive.google.com/open?id=1QqSaxcJGllVPSFea2c2iCV5_dtjJijVe).
+
 Training with pointer generation enabled
 --------------------------------------------
 
@@ -25,30 +50,6 @@ rouge_l_precision: 0.3231 with confidence interval (0.3205, 0.3256)
 
 You can download the model [here](https://drive.google.com/open?id=1kiarI44mVZCmadqgTnToo1jG-mRCzMaB).
 
-Train with coverage loss enabled 
---------------------------------------------
-After training for 100k iterations with coverage loss enabled (batch size 8)
-
-```
-ROUGE-1:
-rouge_1_f_score: 0.3829 with confidence interval (0.3807, 0.3853)
-rouge_1_recall: 0.4199 with confidence interval (0.4175, 0.4227)
-rouge_1_precision: 0.3745 with confidence interval (0.3718, 0.3772)
-
-ROUGE-2:
-rouge_2_f_score: 0.1666 with confidence interval (0.1644, 0.1689)
-rouge_2_recall: 0.1821 with confidence interval (0.1797, 0.1846)
-rouge_2_precision: 0.1638 with confidence interval (0.1615, 0.1660)
-
-ROUGE-l:
-rouge_l_f_score: 0.3514 with confidence interval (0.3492, 0.3537)
-rouge_l_recall: 0.3850 with confidence interval (0.3827, 0.3877)
-rouge_l_precision: 0.3441 with confidence interval (0.3414, 0.3466)
-```
-
-![Alt text](learning_curve_coverage.png?raw=true "Learning Curve with coverage loss")
-
-You can download the model [here](https://drive.google.com/open?id=1QqSaxcJGllVPSFea2c2iCV5_dtjJijVe).
 
 How to run training:
 --------------------------------------------

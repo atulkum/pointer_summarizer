@@ -23,8 +23,6 @@ rouge_l_precision: 0.3441 with confidence interval (0.3414, 0.3466)
 
 ![Alt text](learning_curve_coverage.png?raw=true "Learning Curve with coverage loss")
 
-You can download the model [here](https://drive.google.com/open?id=1QqSaxcJGllVPSFea2c2iCV5_dtjJijVe).
-
 Training with pointer generation enabled
 --------------------------------------------
 
@@ -47,8 +45,6 @@ rouge_l_recall: 0.3399 with confidence interval (0.3374, 0.3426)
 rouge_l_precision: 0.3231 with confidence interval (0.3205, 0.3256)
 ```
 ![Alt text](learning_curve.png?raw=true "Learning Curve with pointer generation")
-
-You can download the model [here](https://drive.google.com/open?id=1kiarI44mVZCmadqgTnToo1jG-mRCzMaB).
 
 
 How to run training:

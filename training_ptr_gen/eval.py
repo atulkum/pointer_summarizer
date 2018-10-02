@@ -49,7 +49,7 @@ class Evaluate(object):
             y_t_1 = dec_batch[:, di]  # Teacher forcing
             final_dist, s_t_1, c_t_1,attn_dist, p_gen, coverage = self.model.decoder(y_t_1, s_t_1,
                                                                 encoder_outputs, enc_padding_mask, c_t_1,
-                                                                extra_zeros, enc_batch_extend_vocab, coverage)
+                                                                extra_zeros, enc_batch_extend_vocab, coverage, di)
             target = target_batch[:, di]
             gold_probs = torch.gather(final_dist, 1, target.unsqueeze(1)).squeeze()
             step_loss = -torch.log(gold_probs + config.eps)

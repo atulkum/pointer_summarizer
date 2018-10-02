@@ -145,7 +145,15 @@ class Decoder(nn.Module):
         init_linear_wt(self.out2)
 
     def forward(self, y_t_1, s_t_1, encoder_outputs, enc_padding_mask,
-                c_t_1, extra_zeros, enc_batch_extend_vocab, coverage):
+                c_t_1, extra_zeros, enc_batch_extend_vocab, coverage, step):
+
+        if not self.training and step == 0:
+            h_decoder, c_decoder = s_t_1
+            s_t_hat = torch.cat((h_decoder.view(-1, config.hidden_dim),
+                                 c_decoder.view(-1, config.hidden_dim)), 1)  # B x 2*hidden_dim
+            c_t, _, coverage_next = self.attention_network(s_t_hat, encoder_outputs,
+                                                              enc_padding_mask, coverage)
+            coverage = coverage_next
 
         y_t_1_embd = self.embedding(y_t_1)
         x = self.x_context(torch.cat((c_t_1, y_t_1_embd), 1))
@@ -154,8 +162,11 @@ class Decoder(nn.Module):
         h_decoder, c_decoder = s_t
         s_t_hat = torch.cat((h_decoder.view(-1, config.hidden_dim),
                              c_decoder.view(-1, config.hidden_dim)), 1)  # B x 2*hidden_dim
-        c_t, attn_dist, coverage = self.attention_network(s_t_hat, encoder_outputs,
+        c_t, attn_dist, coverage_next = self.attention_network(s_t_hat, encoder_outputs,
                                                           enc_padding_mask, coverage)
+
+        if self.training or step > 0:
+            coverage = coverage_next
 
         p_gen = None
         if config.pointer_gen:

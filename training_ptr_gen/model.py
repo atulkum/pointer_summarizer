@@ -72,8 +72,10 @@ class ReduceState(nn.Module):
 
     def forward(self, hidden):
         h, c = hidden # h, c dim = 2 x b x hidden_dim
-        hidden_reduced_h = F.relu(self.reduce_h(h.view(-1, config.hidden_dim * 2)))
-        hidden_reduced_c = F.relu(self.reduce_c(c.view(-1, config.hidden_dim * 2)))
+        h_in = h.transpose(0, 1).contiguous().view(-1, config.hidden_dim * 2)
+        hidden_reduced_h = F.relu(self.reduce_h(h_in))
+        c_in = c.transpose(0, 1).contiguous().view(-1, config.hidden_dim * 2)
+        hidden_reduced_c = F.relu(self.reduce_c(c_in))
 
         return (hidden_reduced_h.unsqueeze(0), hidden_reduced_c.unsqueeze(0)) # h, c dim = 1 x b x hidden_dim
 

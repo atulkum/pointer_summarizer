@@ -47,7 +47,7 @@ class Evaluate(object):
         step_losses = []
         for di in range(min(max_dec_len, config.max_dec_steps)):
             y_t_1 = dec_batch[:, di]  # Teacher forcing
-            final_dist, s_t_1, c_t_1,attn_dist, p_gen, coverage = self.model.decoder(y_t_1, s_t_1,
+            final_dist, s_t_1, c_t_1,attn_dist, p_gen, next_coverage = self.model.decoder(y_t_1, s_t_1,
                                                                 encoder_outputs, enc_padding_mask, c_t_1,
                                                                 extra_zeros, enc_batch_extend_vocab, coverage, di)
             target = target_batch[:, di]
@@ -56,6 +56,7 @@ class Evaluate(object):
             if config.is_coverage:
                 step_coverage_loss = torch.sum(torch.min(attn_dist, coverage), 1)
                 step_loss = step_loss + config.cov_loss_wt * step_coverage_loss
+                coverage = next_coverage
 
             step_mask = dec_padding_mask[:, di]
             step_loss = step_loss * step_mask

@@ -48,6 +48,8 @@ class Encoder(nn.Module):
         self.lstm = nn.LSTM(config.emb_dim, config.hidden_dim, num_layers=1, batch_first=True, bidirectional=True)
         init_lstm_wt(self.lstm)
 
+        self.W_h = nn.Linear(config.hidden_dim * 2, config.hidden_dim * 2, bias=False)
+
     #seq_lens should be in descending order
     def forward(self, input, seq_lens):
         embedded = self.embedding(input)
@@ -55,11 +57,13 @@ class Encoder(nn.Module):
         packed = pack_padded_sequence(embedded, seq_lens, batch_first=True)
         output, hidden = self.lstm(packed)
 
-        h, _ = pad_packed_sequence(output, batch_first=True)  # h dim = B x t_k x n
-        h = h.contiguous()
-        max_h, _ = h.max(dim=1)
+        encoder_outputs, _ = pad_packed_sequence(output, batch_first=True)  # h dim = B x t_k x n
+        encoder_outputs = encoder_outputs.contiguous()
 
-        return h, hidden, max_h
+        encoder_feature = encoder_outputs.view(-1, 2*config.hidden_dim)  # B * t_k x 2*hidden_dim
+        encoder_feature = self.W_h(encoder_feature)
+
+        return encoder_outputs, encoder_feature, hidden
 
 class ReduceState(nn.Module):
     def __init__(self):
@@ -83,16 +87,13 @@ class Attention(nn.Module):
     def __init__(self):
         super(Attention, self).__init__()
         # attention
-        self.W_h = nn.Linear(config.hidden_dim * 2, config.hidden_dim * 2, bias=False)
         if config.is_coverage:
             self.W_c = nn.Linear(1, config.hidden_dim * 2, bias=False)
         self.decode_proj = nn.Linear(config.hidden_dim * 2, config.hidden_dim * 2)
         self.v = nn.Linear(config.hidden_dim * 2, 1, bias=False)
 
-    def forward(self, s_t_hat, h, enc_padding_mask, coverage):
-        b, t_k, n = list(h.size())
-        h = h.view(-1, n)  # B * t_k x 2*hidden_dim
-        encoder_feature = self.W_h(h)
+    def forward(self, s_t_hat, encoder_outputs, encoder_feature, enc_padding_mask, coverage):
+        b, t_k, n = list(encoder_outputs.size())
 
         dec_fea = self.decode_proj(s_t_hat) # B x 2*hidden_dim
         dec_fea_expanded = dec_fea.unsqueeze(1).expand(b, t_k, n).contiguous() # B x t_k x 2*hidden_dim
@@ -113,8 +114,7 @@ class Attention(nn.Module):
         attn_dist = attn_dist_ / normalization_factor
 
         attn_dist = attn_dist.unsqueeze(1)  # B x 1 x t_k
-        h = h.view(-1, t_k, n)  # B x t_k x 2*hidden_dim
-        c_t = torch.bmm(attn_dist, h)  # B x 1 x n
+        c_t = torch.bmm(attn_dist, encoder_outputs)  # B x 1 x n
         c_t = c_t.view(-1, config.hidden_dim * 2)  # B x 2*hidden_dim
 
         attn_dist = attn_dist.view(-1, t_k)  # B x t_k
@@ -146,14 +146,14 @@ class Decoder(nn.Module):
         self.out2 = nn.Linear(config.hidden_dim, config.vocab_size)
         init_linear_wt(self.out2)
 
-    def forward(self, y_t_1, s_t_1, encoder_outputs, enc_padding_mask,
+    def forward(self, y_t_1, s_t_1, encoder_outputs, encoder_feature, enc_padding_mask,
                 c_t_1, extra_zeros, enc_batch_extend_vocab, coverage, step):
 
         if not self.training and step == 0:
             h_decoder, c_decoder = s_t_1
             s_t_hat = torch.cat((h_decoder.view(-1, config.hidden_dim),
                                  c_decoder.view(-1, config.hidden_dim)), 1)  # B x 2*hidden_dim
-            c_t, _, coverage_next = self.attention_network(s_t_hat, encoder_outputs,
+            c_t, _, coverage_next = self.attention_network(s_t_hat, encoder_outputs, encoder_feature,
                                                               enc_padding_mask, coverage)
             coverage = coverage_next
 
@@ -164,7 +164,7 @@ class Decoder(nn.Module):
         h_decoder, c_decoder = s_t
         s_t_hat = torch.cat((h_decoder.view(-1, config.hidden_dim),
                              c_decoder.view(-1, config.hidden_dim)), 1)  # B x 2*hidden_dim
-        c_t, attn_dist, coverage_next = self.attention_network(s_t_hat, encoder_outputs,
+        c_t, attn_dist, coverage_next = self.attention_network(s_t_hat, encoder_outputs, encoder_feature,
                                                           enc_padding_mask, coverage)
 
         if self.training or step > 0:

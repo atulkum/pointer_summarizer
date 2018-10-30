@@ -35,5 +35,3 @@ max_iterations = 500000
 use_gpu=True
 
 lr_coverage=0.15
-
-use_maxpool_init_ctx = False

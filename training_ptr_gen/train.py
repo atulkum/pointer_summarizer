@@ -8,7 +8,7 @@ import torch
 from model import Model
 from torch.nn.utils import clip_grad_norm_
 
-from custom_adagrad import AdagradCustom
+from torch.optim import Adagrad
 
 from data_util import config
 from data_util.batcher import Batcher
@@ -53,7 +53,7 @@ class Train(object):
         params = list(self.model.encoder.parameters()) + list(self.model.decoder.parameters()) + \
                  list(self.model.reduce_state.parameters())
         initial_lr = config.lr_coverage if config.is_coverage else config.lr
-        self.optimizer = AdagradCustom(params, lr=initial_lr, initial_accumulator_value=config.adagrad_init_acc)
+        self.optimizer = Adagrad(params, lr=initial_lr, initial_accumulator_value=config.adagrad_init_acc)
 
         start_iter, start_loss = 0, 0
 

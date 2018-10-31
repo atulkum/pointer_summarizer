@@ -46,26 +46,28 @@ class Encoder(nn.Module):
         features = nn.Sequential(*layers)
 
     def forward(self, input, seq_lens):
-        embedded = self.embedding(input)
+        embedded = self.embedding(input) * np.sqrt(d_model)
 
 
 class EncoderLayer(nn.Module):
     def __init__(self):
         super(EncoderLayer, self).__init__()
         self.multi_head_att = MultiHeadAttention()
+        self.ln_mh = nn.LayerNorm([d_model])
+
         self.affine1 = nn.Linear(d_model, d_ff, bias=True)
         self.affine2 = nn.Linear(d_ff, d_model, bias=True)
+        self.ln_aff = nn.LayerNorm([d_model])
 
     def forward(self, x):
         x_att = self.multi_head_att(x)
-        x_1 = layer_norm(x + x_att)
+        x_1 = self.ln_mh(x + x_att)
 
         x_aff = F.relu(self.affine1(x_1))
         x_aff = self.affine2(x_aff)
-        x_2 = layer_norm(x_1 + x_aff)
+        x_2 = self.ln_aff(x_1 + x_aff)
 
         return x_2
-
 
 class MultiHeadAttention(nn.Module):
     def __init__(self):

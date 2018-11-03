@@ -2,6 +2,7 @@ from __future__ import unicode_literals, print_function, division
 
 import os
 import time
+import argparse
 
 import tensorflow as tf
 import torch
@@ -137,5 +138,13 @@ class Train(object):
                 self.save_model(running_avg_loss, iter)
 
 if __name__ == '__main__':
+    parser = argparse.ArgumentParser(description="Train script")
+    parser.add_argument("-m",
+                        dest="model_file_path", 
+                        required=False,
+                        default=None,
+                        help="Model file for retraining (default: None).")
+    args = parser.parse_args()
+    
     train_processor = Train()
-    train_processor.trainIters(config.max_iterations)
+    train_processor.trainIters(config.max_iterations, args.model_file_path)

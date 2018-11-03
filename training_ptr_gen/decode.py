@@ -174,8 +174,8 @@ class BeamSearch(object):
                 coverage_i = (coverage_t[i] if config.is_coverage else None)
 
                 for j in xrange(config.beam_size * 2):  # for each of the top 2*beam_size hyps:
-                    new_beam = h.extend(token=topk_ids[i, j].data[0],
-                                   log_prob=topk_log_probs[i, j].data[0],
+                    new_beam = h.extend(token=topk_ids[i, j].item(),
+                                   log_prob=topk_log_probs[i, j].item(),
                                    state=state_i,
                                    context=context_i,
                                    coverage=coverage_i)

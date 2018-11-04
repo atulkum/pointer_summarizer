@@ -6,19 +6,19 @@ After training for 100k iterations with coverage loss enabled (batch size 8)
 
 ```
 ROUGE-1:
-rouge_1_f_score: 0.3829 with confidence interval (0.3807, 0.3853)
-rouge_1_recall: 0.4199 with confidence interval (0.4175, 0.4227)
-rouge_1_precision: 0.3745 with confidence interval (0.3718, 0.3772)
+rouge_1_f_score: 0.3907 with confidence interval (0.3885, 0.3928)
+rouge_1_recall: 0.4434 with confidence interval (0.4410, 0.4460)
+rouge_1_precision: 0.3698 with confidence interval (0.3672, 0.3721)
 
 ROUGE-2:
-rouge_2_f_score: 0.1666 with confidence interval (0.1644, 0.1689)
-rouge_2_recall: 0.1821 with confidence interval (0.1797, 0.1846)
-rouge_2_precision: 0.1638 with confidence interval (0.1615, 0.1660)
+rouge_2_f_score: 0.1697 with confidence interval (0.1674, 0.1720)
+rouge_2_recall: 0.1920 with confidence interval (0.1894, 0.1945)
+rouge_2_precision: 0.1614 with confidence interval (0.1590, 0.1636)
 
 ROUGE-l:
-rouge_l_f_score: 0.3514 with confidence interval (0.3492, 0.3537)
-rouge_l_recall: 0.3850 with confidence interval (0.3827, 0.3877)
-rouge_l_precision: 0.3441 with confidence interval (0.3414, 0.3466)
+rouge_l_f_score: 0.3587 with confidence interval (0.3565, 0.3608)
+rouge_l_recall: 0.4067 with confidence interval (0.4042, 0.4092)
+rouge_l_precision: 0.3397 with confidence interval (0.3371, 0.3420)
 ```
 
 ![Alt text](learning_curve_coverage.png?raw=true "Learning Curve with coverage loss")

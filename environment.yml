@@ -1,0 +1,60 @@
+name: capsum
+channels:
+  - mingfeima
+  - pytorch
+  - defaults
+dependencies:
+  - blas=1.0=openblas
+  - bzip2=1.0.6=h14c3975_5
+  - ca-certificates=2018.03.07=0
+  - certifi=2018.8.24=py35_1
+  - cffi=1.11.5=py35he75722e_1
+  - cmake=3.12.2=h52cb24c_0
+  - expat=2.2.6=he6710b0_0
+  - freetype=2.9.1=h8a8886c_1
+  - intel-openmp=2019.1=144
+  - jpeg=9b=h024ee3a_2
+  - libcurl=7.61.1=heec0ca6_0
+  - libedit=3.1.20170329=h6b74fdf_2
+  - libffi=3.2.1=hd88cf55_4
+  - libgcc-ng=8.2.0=hdf63c60_1
+  - libgfortran-ng=7.3.0=hdf63c60_0
+  - libopenblas=0.3.3=h5a2b251_3
+  - libpng=1.6.35=hbc83047_0
+  - libssh2=1.8.0=h9cfc8f7_4
+  - libstdcxx-ng=8.2.0=hdf63c60_1
+  - libtiff=4.0.9=he85c1e1_2
+  - mkl=2019.1=144
+  - mkl-include=2019.1=144
+  - ncurses=6.1=he6710b0_1
+  - ninja=1.8.2=py35h6bb024c_1
+  - numpy=1.15.2=py35h99e49ec_0
+  - numpy-base=1.15.2=py35h2f8d375_0
+  - olefile=0.46=py35_0
+  - openssl=1.0.2p=h14c3975_0
+  - pillow=5.2.0=py35heded4f4_0
+  - pip=10.0.1=py35_0
+  - pycparser=2.19=py35_0
+  - python=3.5.6=hc3d631a_0
+  - pyyaml=3.13=py35h14c3975_0
+  - readline=7.0=h7b6447c_5
+  - rhash=1.3.6=hb7f436b_0
+  - setuptools=40.2.0=py35_0
+  - six=1.11.0=py35_1
+  - sqlite=3.25.3=h7b6447c_0
+  - tk=8.6.8=hbc83047_0
+  - typing=3.6.6=py35_0
+  - wheel=0.31.1=py35_0
+  - xz=5.2.4=h14c3975_4
+  - yaml=0.1.7=had09818_2
+  - zlib=1.2.11=h7b6447c_3
+  - mkldnn=0.16.1=0
+  - magma-cuda90=2.4.0=1
+  - pytorch=0.4.1=py35_py27__9.0.176_7.1.2_2
+  - torchvision=0.2.1=py35_1
+  - pip:
+    - pycosat==0.6.3
+    - ruamel.yaml==0.15.75
+    - torch==0.4.1.post2
+prefix: /home/lily/yt325/anaconda3/envs/capsum
+

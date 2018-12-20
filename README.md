@@ -54,7 +54,7 @@ How to run training:
 3) For training run start_train.sh, for decoding run start_decode.sh, and for evaluating run run_eval.sh
 
 Note:
-* It is tested on pytorch 0.4
+* It is tested on pytorch 0.4 with python 2.7
 * You need to setup [pyrouge](https://github.com/andersjo/pyrouge) to get the rouge score
 
 

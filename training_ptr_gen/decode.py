@@ -158,8 +158,8 @@ class BeamSearch(object):
             final_dist, s_t, c_t, attn_dist, p_gen, coverage_t = self.model.decoder(y_t_1, s_t_1,
                                                         encoder_outputs, encoder_feature, enc_padding_mask, c_t_1,
                                                         extra_zeros, enc_batch_extend_vocab, coverage_t_1, steps)
-
-            topk_log_probs, topk_ids = torch.topk(final_dist, config.beam_size * 2)
+            log_probs = torch.log(final_dist)
+            topk_log_probs, topk_ids = torch.topk(log_probs, config.beam_size * 2)
 
             dec_h, dec_c = s_t
             dec_h = dec_h.squeeze()

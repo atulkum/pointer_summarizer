@@ -5,103 +5,106 @@ from __future__ import unicode_literals, print_function, division
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from data_util import config
-from numpy import random
-import numpy as np
+import logging
+import math
 
-use_cuda = config.use_gpu and torch.cuda.is_available()
+logging.basicConfig(level=logging.INFO)
 
-random.seed(123)
-torch.manual_seed(123)
-if torch.cuda.is_available():
-    torch.cuda.manual_seed_all(123)
+class PositionalEncoding(nn.Module):
+    def __init__(self, d_model, dropout, max_len=5000):
+        super(PositionalEncoding, self).__init__()
+        self.dropout = nn.Dropout(p=dropout)
 
-d_model = 512
-N = 6
-H = 8
-d_k = d_v = 64 # = d_model / H
-sqrt_d_k = np.sqrt(d_k)
-
-d_ff = 2048
-
-def get_pos_embedding(max_len):
-    pos_emb = np.zeros(max_len, d_model)
-    pos = np.arange(0, max_len)
-
-    denom = np.exp(np.arange(0, d_model, 2) * (-np.log(10000.0) / d_model))
-
-    pos_emb[:, 0::2] = np.sin(pos*denom)
-    pos_emb[:, 1::2] = np.cos(pos*denom)
-
-    return pos_emb
-
-def init_wt_normal(wt):
-    wt.data.normal_(std=config.trunc_norm_init_std)
-
-class Encoder(nn.Module):
-    def __init__(self):
-        super(Encoder, self).__init__()
-        self.embedding = nn.Embedding(config.vocab_size, config.emb_dim)
-        init_wt_normal(self.embedding.weight)
-
-        layers = [EncoderLayer() for _ in range(N)]
-        features = nn.Sequential(*layers)
-
-    def forward(self, input, seq_lens):
-        embedded = self.embedding(input) * np.sqrt(d_model)
-
-
-class EncoderLayer(nn.Module):
-    def __init__(self):
-        super(EncoderLayer, self).__init__()
-        self.multi_head_att = MultiHeadAttention()
-        self.ln_mh = nn.LayerNorm([d_model])
-
-        self.affine1 = nn.Linear(d_model, d_ff, bias=True)
-        self.affine2 = nn.Linear(d_ff, d_model, bias=True)
-        self.ln_aff = nn.LayerNorm([d_model])
+        pe = torch.zeros(max_len, d_model)
+        position = torch.arange(0, max_len).float().unsqueeze(1)
+        div_term = torch.exp(torch.arange(0, d_model, 2).float() *
+                             -(math.log(10000.0) / d_model))
+        pe[:, 0::2] = torch.sin(position * div_term)
+        pe[:, 1::2] = torch.cos(position * div_term)
+        pe = pe.unsqueeze(0)
+        self.register_buffer('pe', pe)
 
     def forward(self, x):
-        x_att = self.multi_head_att(x)
-        x_1 = self.ln_mh(x + x_att)
+        x = x + self.pe[:, :x.size(1)]
+        return self.dropout(x)
 
-        x_aff = F.relu(self.affine1(x_1))
-        x_aff = self.affine2(x_aff)
-        x_2 = self.ln_aff(x_1 + x_aff)
+class MultiHeadedAttention(nn.Module):
+    def __init__(self, num_head, d_model, dropout=0.1):
+        super(MultiHeadedAttention, self).__init__()
+        assert d_model % num_head == 0
+        self.d_k = d_model // num_head  #d_k == d_v
+        self.h = num_head
 
-        return x_2
+        self.linear_key = nn.Linear(d_model, d_model)
+        self.linear_value = nn.Linear(d_model, d_model)
+        self.linear_query = nn.Linear(d_model, d_model)
+        self.linear_out = nn.Linear(d_model, d_model)
 
-class MultiHeadAttention(nn.Module):
-    def __init__(self):
-        super(MultiHeadAttention, self).__init__()
-        self.W_Q = nn.Linear(d_model, d_model, bias=False)
-        self.W_K = nn.Linear(d_model, d_model, bias=False)
-        self.W_V = nn.Linear(d_model, d_model, bias=False)
+        self.dropout = nn.Dropout(p=dropout)
 
-        self.W_O = nn.Linear(d_model, d_model, bias=False)
+    def attention(self, query, key, value, mask, dropout=None):
+        d_k = query.size(-1)
+        scores = torch.matmul(query, key.transpose(-2, -1)) / math.sqrt(d_k)
+        scores = scores.masked_fill(mask == 0, -1e9)
 
-    def forward(self, q, k, v):
-        q_proj = self.W_Q(q) #B x d_model
-        k_proj = self.W_K(k)
-        v_proj = self.W_V(v)
+        p_attn = F.softmax(scores, dim=-1)
+        if dropout is not None:
+            p_attn = dropout(p_attn)
+        return torch.matmul(p_attn, value), p_attn
 
-        q_proj_split = torch.split(q_proj, split_size_or_sections=d_k, dim=1)
-        k_proj_split = torch.split(k_proj, split_size_or_sections=d_k, dim=1)
-        v_proj_split = torch.split(v_proj, split_size_or_sections=d_v, dim=1)
+    def forward(self, query, key, value, mask):
+        nbatches = query.size(0)
+        query = self.linear_query(query).view(nbatches, -1, self.h, self.d_k).transpose(1, 2)
+        key = self.linear_key(key).view(nbatches, -1, self.h, self.d_k).transpose(1, 2)
+        value = self.linear_value(value).view(nbatches, -1, self.h, self.d_k).transpose(1, 2)
 
-        heads = []
+        mask = mask.unsqueeze(1)
+        x, attn = self.attention(query, key, value, mask, dropout=self.dropout)
+        x = x.transpose(1, 2).contiguous().view(nbatches, -1, self.h * self.d_k)
+        return self.linear_out(x)
 
-        for i, q_i in enumerate(q_proj_split):
-            k_i = k_proj_split[i] #B x d_k
-            v_i = v_proj_split[i]
-            qk_i = torch.bmm(q_i, k_i)/sqrt_d_k ##B x d_k
-            att_i = F.softmax(qk_i)
-            att_i = torch.bmm(att_i, v_i)
+class AffineLayer(nn.Module):
+    def __init__(self, dropout, d_model, d_ff):
+        super(AffineLayer, self).__init__()
+        self.w_1 = nn.Linear(d_model, d_ff)
+        self.w_2 = nn.Linear(d_ff, d_model)
+        self.dropout = nn.Dropout(dropout)
 
-            heads.append(att_i)
+    def forward(self, x):
+        return self.w_2(self.dropout(F.relu(self.w_1(x))))
 
-        heads_cat = torch.cat(heads, dim=1)
-        multi_head_att = self.W_O(heads_cat)
+class EncoderLayer(nn.Module):
+    def __init__(self, num_head, dropout, d_model, d_ff):
+        super(EncoderLayer, self).__init__()
 
-        return multi_head_att
+        self.att_layer = MultiHeadedAttention(num_head, d_model, dropout)
+        self.norm_att = nn.LayerNorm(d_model)
+        self.dropout_att = nn.Dropout(dropout)
 
+        self.affine_layer = AffineLayer(dropout, d_model, d_ff)
+        self.norm_affine = nn.LayerNorm(d_model)
+        self.dropout_affine = nn.Dropout(dropout)
+
+    def forward(self, x, mask):
+        x_att = self.norm_att(x*mask)
+        x_att = self.att_layer(x_att, x_att, x_att, mask)
+        x = x + self.dropout_att(x_att)
+
+        x_affine = self.norm_affine(x*mask)
+        x_affine = self.affine_layer(x_affine)
+        return x + self.dropout_affine(x_affine)
+
+class Encoder(nn.Module):
+    def __init__(self, N, num_head, dropout, d_model, d_ff):
+        super(Encoder, self).__init__()
+        self.position = PositionalEncoding(d_model, dropout)
+        self.layers = nn.ModuleList()
+        for _ in range(N):
+            self.layers.append(EncoderLayer(num_head, dropout, d_model, d_ff))
+        self.norm = nn.LayerNorm(d_model)
+
+    def forward(self, word_embed, mask):
+        x = self.position(word_embed)
+        for layer in self.layers:
+            x = layer(x, mask)
+        return self.norm(x*mask)

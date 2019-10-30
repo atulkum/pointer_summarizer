@@ -57,5 +57,9 @@ Note:
 * It is tested on pytorch 0.4 with python 2.7
 * You need to setup [pyrouge](https://github.com/andersjo/pyrouge) to get the rouge score
 
+Papaers using this code:
+--------------------------------------------
+1) [Automatic Program Synthesis of Long Programs with a Learned Garbage Collector](http://papers.nips.cc/paper/7479-automatic-program-synthesis-of-long-programs-with-a-learned-garbage-collector) https://github.com/amitz25/PCCoder
+2) [Automatic Fact-guided Sentence Modification](https://arxiv.org/abs/1909.13838)
 
 

@@ -81,7 +81,7 @@ class Train(object):
 
         self.optimizer.zero_grad()
 
-        encoder_outputs, encoder_feature, encoder_hidden = self.model.encoder(enc_batch, enc_lens)
+        encoder_outputs, encoder_feature, encoder_hidden = self.model.encoder(enc_batch, enc_lens, enc_padding_mask)
         s_t_1 = self.model.reduce_state(encoder_hidden)
 
         step_losses = []

@@ -6,6 +6,7 @@ import torch.nn.functional as F
 from torch.nn.utils.rnn import pack_padded_sequence, pad_packed_sequence
 from data_util import config
 from numpy import random
+import transformer_encoder  
 
 use_cuda = config.use_gpu and torch.cuda.is_available()
 
@@ -45,21 +46,35 @@ class Encoder(nn.Module):
         self.embedding = nn.Embedding(config.vocab_size, config.emb_dim)
         init_wt_normal(self.embedding.weight)
         
-        self.lstm = nn.LSTM(config.emb_dim, config.hidden_dim, num_layers=1, batch_first=True, bidirectional=True)
-        init_lstm_wt(self.lstm)
+        if config.use_lstm:
+            self.lstm = nn.LSTM(config.emb_dim, config.hidden_dim, num_layers=1, batch_first=True, bidirectional=True)
+            init_lstm_wt(self.lstm)
+        else:
+             model_dim = config.emb_dim
+             num_head = 2 #8
+             num_layer = 2 #6
+             dropout_ratio = 0.1
+             affine_dim = config.hidden_dim * 2 #this is output diention of tranformer encoder
+
+             self.tx_proj = nn.Linear(, model_dim)
+             self.lstm = transformer_encoder.Encoder(num_layer, num_head, dropout_ratio, model_dim, affine_dim) 
 
         self.W_h = nn.Linear(config.hidden_dim * 2, config.hidden_dim * 2, bias=False)
 
     #seq_lens should be in descending order
-    def forward(self, input, seq_lens):
+    def forward(self, input, seq_lens, enc_padding_mask):
         embedded = self.embedding(input)
-       
-        packed = pack_padded_sequence(embedded, seq_lens, batch_first=True)
-        output, hidden = self.lstm(packed)
-
-        encoder_outputs, _ = pad_packed_sequence(output, batch_first=True)  # h dim = B x t_k x n
-        encoder_outputs = encoder_outputs.contiguous()
         
+        if config.use_lstm:
+            packed = pack_padded_sequence(embedded, seq_lens, batch_first=True)
+            output, hidden = self.lstm(packed)
+
+            encoder_outputs, _ = pad_packed_sequence(output, batch_first=True)  # h dim = B x t_k x n
+            encoder_outputs = encoder_outputs.contiguous()
+        else:
+            word_embed_proj = self.tx_proj(embedded)
+            lstm_feats = self.lstm(word_embed_proj, enc_padding_mask.unsqueeze(-1))
+            
         encoder_feature = encoder_outputs.view(-1, 2*config.hidden_dim)  # B * t_k x 2*hidden_dim
         encoder_feature = self.W_h(encoder_feature)
 

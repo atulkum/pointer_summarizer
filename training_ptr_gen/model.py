@@ -44,35 +44,22 @@ class Encoder(nn.Module):
         super(Encoder, self).__init__()
         self.embedding = nn.Embedding(config.vocab_size, config.emb_dim)
         init_wt_normal(self.embedding.weight)
-        if config.use_lstm:
-            self.lstm = nn.LSTM(config.emb_dim, config.hidden_dim, num_layers=1, batch_first=True, bidirectional=True)
-            init_lstm_wt(self.lstm)
-        else:
-             model_dim = 128 #512
-             num_head = 2 #8
-             num_layer = 2 #6
-             dropout_ratio = 0.1
-             affine_dim = 256 #2048
-
-             self.tx_proj = nn.Linear(config.emb_dim, model_dim)
-             self.lstm = Encoder(num_layer, num_head, dropout_ratio, model_dim, affine_dim) #output dim??
+        
+        self.lstm = nn.LSTM(config.emb_dim, config.hidden_dim, num_layers=1, batch_first=True, bidirectional=True)
+        init_lstm_wt(self.lstm)
 
         self.W_h = nn.Linear(config.hidden_dim * 2, config.hidden_dim * 2, bias=False)
 
     #seq_lens should be in descending order
     def forward(self, input, seq_lens):
         embedded = self.embedding(input)
-        if config.use_lstm:
-            packed = pack_padded_sequence(embedded, seq_lens, batch_first=True)
-            output, hidden = self.lstm(packed)
+       
+        packed = pack_padded_sequence(embedded, seq_lens, batch_first=True)
+        output, hidden = self.lstm(packed)
 
-            encoder_outputs, _ = pad_packed_sequence(output, batch_first=True)  # h dim = B x t_k x n
-            encoder_outputs = encoder_outputs.contiguous()
-        else:
-            mask = get_mask(lengths) #get mask from padding token ne
-            word_embed_proj = self.tx_proj(embedded)
-            lstm_feats = self.lstm(word_embed_proj, mask.unsqueeze(-1))
-            
+        encoder_outputs, _ = pad_packed_sequence(output, batch_first=True)  # h dim = B x t_k x n
+        encoder_outputs = encoder_outputs.contiguous()
+        
         encoder_feature = encoder_outputs.view(-1, 2*config.hidden_dim)  # B * t_k x 2*hidden_dim
         encoder_feature = self.W_h(encoder_feature)
 

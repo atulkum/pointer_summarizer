@@ -110,7 +110,7 @@ class BeamSearch(object):
         enc_batch, enc_padding_mask, enc_lens, enc_batch_extend_vocab, extra_zeros, c_t_0, coverage_t_0 = \
             get_input_from_batch(batch, use_cuda)
 
-        encoder_outputs, encoder_feature, encoder_hidden = self.model.encoder(enc_batch, enc_lens)
+        encoder_outputs, encoder_feature, encoder_hidden = self.model.encoder(enc_batch, enc_lens, enc_padding_mask)
         s_t_0 = self.model.reduce_state(encoder_hidden)
 
         dec_h, dec_c = s_t_0 # 1 x 2*hidden_size

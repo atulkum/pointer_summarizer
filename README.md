@@ -61,5 +61,6 @@ Papaers using this code:
 --------------------------------------------
 1) [Automatic Program Synthesis of Long Programs with a Learned Garbage Collector](http://papers.nips.cc/paper/7479-automatic-program-synthesis-of-long-programs-with-a-learned-garbage-collector) https://github.com/amitz25/PCCoder
 2) [Automatic Fact-guided Sentence Modification](http://people.csail.mit.edu/tals/publication/fact_generation/)
+3) [Resurrecting Submodularity in Neural Abstractive Summarization](https://arxiv.org/abs/1911.03014v1)
 
 

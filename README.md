@@ -1,5 +1,5 @@
 
-# pytorch implementation of *[Get To The Point: Summarization with Pointer-Generator Networks](https://arxiv.org/abs/1704.04368)*
+pytorch implementation of *[Get To The Point: Summarization with Pointer-Generator Networks](https://arxiv.org/abs/1704.04368)*
 
 # Table of Contents
 1. [Train with pointer generation with coverage loss enabled](#train-with-pointer-generation-with-coverage-loss-enabled)
@@ -9,7 +9,6 @@
 
 
 ## Train with pointer generation with coverage loss enabled 
---------------------------------------------
 After training for 100k iterations with coverage loss enabled (batch size 8)
 
 ```
@@ -32,8 +31,6 @@ rouge_l_precision: 0.3397 with confidence interval (0.3371, 0.3420)
 ![Alt text](learning_curve_coverage.png?raw=true "Learning Curve with coverage loss")
 
 ## Training with pointer generation enabled
---------------------------------------------
-
 After training for 500k iterations (batch size 8)
 
 ```
@@ -56,7 +53,6 @@ rouge_l_precision: 0.3231 with confidence interval (0.3205, 0.3256)
 
 
 ## How to run training:
---------------------------------------------
 1) Follow data generation instruction from https://github.com/abisee/cnn-dailymail
 2) Run start_train.sh, you might need to change some path and parameters in data_util/config.py
 3) For training run start_train.sh, for decoding run start_decode.sh, and for evaluating run run_eval.sh

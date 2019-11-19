@@ -1,12 +1,12 @@
 pytorch implementation of *[Get To The Point: Summarization with Pointer-Generator Networks](https://arxiv.org/abs/1704.04368)*
 
-1. [Train with pointer generation with coverage loss enabled](#train-with-pointer-generation-with-coverage-loss-enabled)
+1. [Train with pointer generation and coverage loss enabled](#train-with-pointer-generation-and-coverage-loss-enabled)
 2. [Training with pointer generation enabled](#training-with-pointer-generation-enabled)
 3. [How to run training](#how-to-run-training)
 4. [Papers using this code](#papers-using-this-code)
 
 
-## Train with pointer generation with coverage loss enabled 
+## Train with pointer generation and coverage loss enabled 
 After training for 100k iterations with coverage loss enabled (batch size 8)
 
 ```

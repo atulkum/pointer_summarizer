@@ -1,6 +1,14 @@
-pytorch implementation of *[Get To The Point: Summarization with Pointer-Generator Networks](https://arxiv.org/abs/1704.04368)*
 
-Train with pointer generation + coverage loss enabled 
+# pytorch implementation of *[Get To The Point: Summarization with Pointer-Generator Networks](https://arxiv.org/abs/1704.04368)*
+
+# Table of Contents
+1. [Train with pointer generation with coverage loss enabled](#train-with-pointer-generation-with-coverage-loss-enabled)
+2. [Training with pointer generation enabled](#training-with-pointer-generation-enabled)
+3. [How to run training](#how-to-run-training)
+4. [Papers using this code](#papers-using-this-code)
+
+
+## Train with pointer generation with coverage loss enabled 
 --------------------------------------------
 After training for 100k iterations with coverage loss enabled (batch size 8)
 
@@ -23,7 +31,7 @@ rouge_l_precision: 0.3397 with confidence interval (0.3371, 0.3420)
 
 ![Alt text](learning_curve_coverage.png?raw=true "Learning Curve with coverage loss")
 
-Training with pointer generation enabled
+## Training with pointer generation enabled
 --------------------------------------------
 
 After training for 500k iterations (batch size 8)
@@ -47,7 +55,7 @@ rouge_l_precision: 0.3231 with confidence interval (0.3205, 0.3256)
 ![Alt text](learning_curve.png?raw=true "Learning Curve with pointer generation")
 
 
-How to run training:
+## How to run training:
 --------------------------------------------
 1) Follow data generation instruction from https://github.com/abisee/cnn-dailymail
 2) Run start_train.sh, you might need to change some path and parameters in data_util/config.py
@@ -57,7 +65,7 @@ Note:
 * It is tested on pytorch 0.4 with python 2.7
 * You need to setup [pyrouge](https://github.com/andersjo/pyrouge) to get the rouge score
 
-Papers using this code:
+## Papers using this code:
 --------------------------------------------
 1) [Automatic Program Synthesis of Long Programs with a Learned Garbage Collector](http://papers.nips.cc/paper/7479-automatic-program-synthesis-of-long-programs-with-a-learned-garbage-collector) https://github.com/amitz25/PCCoder
 2) [Automatic Fact-guided Sentence Modification](http://people.csail.mit.edu/tals/publication/fact_generation/)

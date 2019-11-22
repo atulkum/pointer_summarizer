@@ -56,7 +56,6 @@ class Encoder(nn.Module):
              dropout_ratio = 0.1
              affine_dim = config.hidden_dim * 2 #this is output diention of tranformer encoder
 
-             self.tx_proj = nn.Linear(, model_dim)
              self.lstm = transformer_encoder.Encoder(num_layer, num_head, dropout_ratio, model_dim, affine_dim) 
 
         self.W_h = nn.Linear(config.hidden_dim * 2, config.hidden_dim * 2, bias=False)

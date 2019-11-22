@@ -1,6 +1,6 @@
 #Content of this file is copied from https://github.com/abisee/pointer-generator/blob/master/
 import os
-import pyrouge
+
 import logging
 import tensorflow as tf
 
@@ -19,6 +19,7 @@ def make_html_safe(s):
 
 
 def rouge_eval(ref_dir, dec_dir):
+  import pyrouge
   r = pyrouge.Rouge155()
   r.model_filename_pattern = '#ID#_reference.txt'
   r.system_filename_pattern = '(\d+)_decoded.txt'

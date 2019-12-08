@@ -57,6 +57,10 @@ rouge_l_precision: 0.3231 with confidence interval (0.3205, 0.3256)
 2) Run start_train.sh, you might need to change some path and parameters in data_util/config.py
 3) For training run start_train.sh, for decoding run start_decode.sh, and for evaluating run run_eval.sh
 
+Note for decoding: In decode mode beam search batch should have only one example replicated to batch size
+https://github.com/atulkum/pointer_summarizer/blob/master/training_ptr_gen/decode.py#L109
+https://github.com/atulkum/pointer_summarizer/blob/master/data_util/batcher.py#L226
+
 Note:
 * It is tested on pytorch 0.4 with python 2.7
 * You need to setup [pyrouge](https://github.com/andersjo/pyrouge) to get the rouge score

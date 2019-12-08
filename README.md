@@ -57,7 +57,7 @@ rouge_l_precision: 0.3231 with confidence interval (0.3205, 0.3256)
 
 Note:
 
-*In decode mode beam search batch should have only one example replicated to batch size
+* In decode mode beam search batch should have only one example replicated to batch size
 https://github.com/atulkum/pointer_summarizer/blob/master/training_ptr_gen/decode.py#L109
 https://github.com/atulkum/pointer_summarizer/blob/master/data_util/batcher.py#L226
 

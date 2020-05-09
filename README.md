@@ -69,5 +69,6 @@ https://github.com/atulkum/pointer_summarizer/blob/master/data_util/batcher.py#L
 2) [Automatic Fact-guided Sentence Modification](https://arxiv.org/abs/1909.13838)
 3) [Resurrecting Submodularity in Neural Abstractive Summarization](https://arxiv.org/abs/1911.03014v1)
 4) [StructSum: Incorporating Latent and Explicit Sentence Dependencies for Single Document Summarization](https://arxiv.org/abs/2003.00576)
+5) [Concept Pointer Network for Abstractive Summarization](https://arxiv.org/abs/1910.08486) https://github.com/wprojectsn/codes
 
 

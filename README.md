@@ -70,5 +70,6 @@ https://github.com/atulkum/pointer_summarizer/blob/master/data_util/batcher.py#L
 3) [Resurrecting Submodularity in Neural Abstractive Summarization](https://arxiv.org/abs/1911.03014v1)
 4) [StructSum: Incorporating Latent and Explicit Sentence Dependencies for Single Document Summarization](https://arxiv.org/abs/2003.00576)
 5) [Concept Pointer Network for Abstractive Summarization](https://arxiv.org/abs/1910.08486) https://github.com/wprojectsn/codes
+7) [VAE-PGN based Abstractive Model in Multi-stage Architecture for Text Summarization](https://www.aclweb.org/anthology/W19-8664/)
 
 

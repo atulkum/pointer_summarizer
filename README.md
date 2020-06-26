@@ -66,7 +66,7 @@ https://github.com/atulkum/pointer_summarizer/blob/master/data_util/batcher.py#L
 
 ## Papers using this code:
 1) [Automatic Program Synthesis of Long Programs with a Learned Garbage Collector](http://papers.nips.cc/paper/7479-automatic-program-synthesis-of-long-programs-with-a-learned-garbage-collector) https://github.com/amitz25/PCCoder
-2) [Automatic Fact-guided Sentence Modification](https://arxiv.org/abs/1909.13838)
+2) [Automatic Fact-guided Sentence Modification](https://arxiv.org/abs/1909.13838) https://github.com/darsh10/split_encoder_pointer_summarizer
 3) [Resurrecting Submodularity in Neural Abstractive Summarization](https://arxiv.org/abs/1911.03014v1)
 4) [StructSum: Incorporating Latent and Explicit Sentence Dependencies for Single Document Summarization](https://arxiv.org/abs/2003.00576)
 5) [Concept Pointer Network for Abstractive Summarization](https://arxiv.org/abs/1910.08486) https://github.com/wprojectsn/codes

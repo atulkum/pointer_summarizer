@@ -65,12 +65,12 @@ https://github.com/atulkum/pointer_summarizer/blob/master/data_util/batcher.py#L
 * You need to setup [pyrouge](https://github.com/andersjo/pyrouge) to get the rouge score
 
 ## Papers using this code:
-1) [Automatic Program Synthesis of Long Programs with a Learned Garbage Collector](http://papers.nips.cc/paper/7479-automatic-program-synthesis-of-long-programs-with-a-learned-garbage-collector)***NeuroIPS 2018*** https://github.com/amitz25/PCCoder
+1) [Automatic Program Synthesis of Long Programs with a Learned Garbage Collector](http://papers.nips.cc/paper/7479-automatic-program-synthesis-of-long-programs-with-a-learned-garbage-collector) ***NeuroIPS 2018*** https://github.com/amitz25/PCCoder
 2) [Automatic Fact-guided Sentence Modification](https://arxiv.org/abs/1909.13838) ***AAAI 2020*** https://github.com/darsh10/split_encoder_pointer_summarizer
 3) [Resurrecting Submodularity in Neural Abstractive Summarization](https://arxiv.org/abs/1911.03014v1)
 4) [StructSum: Incorporating Latent and Explicit Sentence Dependencies for Single Document Summarization](https://arxiv.org/abs/2003.00576)
-5) [Concept Pointer Network for Abstractive Summarization] ***EMNLP'2019*** (https://arxiv.org/abs/1910.08486) https://github.com/wprojectsn/codes
-7) [VAE-PGN based Abstractive Model in Multi-stage Architecture for Text Summarization] ***INLG2019*** (https://www.aclweb.org/anthology/W19-8664/)
-8) [Clickbait? Sensational Headline Generation with Auto-tuned Reinforcement Learning]  ***EMNLP'2019*** (https://arxiv.org/abs/1909.03582) https://github.com/HLTCHKUST/sensational_headline
+5) [Concept Pointer Network for Abstractive Summarization](https://arxiv.org/abs/1910.08486) ***EMNLP'2019*** https://github.com/wprojectsn/codes
+7) [VAE-PGN based Abstractive Model in Multi-stage Architecture for Text Summarization](https://www.aclweb.org/anthology/W19-8664/) ***INLG2019***
+8) [Clickbait? Sensational Headline Generation with Auto-tuned Reinforcement Learning](https://arxiv.org/abs/1909.03582)  ***EMNLP'2019*** https://github.com/HLTCHKUST/sensational_headline
 
 

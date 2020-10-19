@@ -72,5 +72,5 @@ https://github.com/atulkum/pointer_summarizer/blob/master/data_util/batcher.py#L
 5) [Concept Pointer Network for Abstractive Summarization](https://arxiv.org/abs/1910.08486) ***EMNLP'2019*** https://github.com/wprojectsn/codes
 7) [VAE-PGN based Abstractive Model in Multi-stage Architecture for Text Summarization](https://www.aclweb.org/anthology/W19-8664/) ***INLG2019***
 8) [Clickbait? Sensational Headline Generation with Auto-tuned Reinforcement Learning](https://arxiv.org/abs/1909.03582)  ***EMNLP'2019*** https://github.com/HLTCHKUST/sensational_headline
-
+9) [Abstractive Spoken Document Summarization using Hierarchical Model with Multi-stage Attention Diversity Optimization](https://www.repository.cam.ac.uk/handle/1810/310361) ***INTERSPEECH 2020***
 

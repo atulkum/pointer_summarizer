@@ -73,4 +73,6 @@ https://github.com/atulkum/pointer_summarizer/blob/master/data_util/batcher.py#L
 7) [VAE-PGN based Abstractive Model in Multi-stage Architecture for Text Summarization](https://www.aclweb.org/anthology/W19-8664/) ***INLG2019***
 8) [Clickbait? Sensational Headline Generation with Auto-tuned Reinforcement Learning](https://arxiv.org/abs/1909.03582)  ***EMNLP'2019*** https://github.com/HLTCHKUST/sensational_headline
 9) [Abstractive Spoken Document Summarization using Hierarchical Model with Multi-stage Attention Diversity Optimization](http://www.interspeech2020.org/index.php?m=content&c=index&a=show&catid=354&id=1173) ***INTERSPEECH 2020***
+10) [Nutribullets Hybrid: Multi-document Health Summarization](https://arxiv.org/abs/2104.03465) ***NAACL 2021***
+11) [A Corpus of Very Short Scientific Summaries](https://aclanthology.org/2020.conll-1.12.pdf) ***CoNLL 2020***
 

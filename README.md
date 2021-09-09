@@ -75,4 +75,6 @@ https://github.com/atulkum/pointer_summarizer/blob/master/data_util/batcher.py#L
 9) [Abstractive Spoken Document Summarization using Hierarchical Model with Multi-stage Attention Diversity Optimization](http://www.interspeech2020.org/index.php?m=content&c=index&a=show&catid=354&id=1173) ***INTERSPEECH 2020***
 10) [Nutribullets Hybrid: Multi-document Health Summarization](https://arxiv.org/abs/2104.03465) ***NAACL 2021***
 11) [A Corpus of Very Short Scientific Summaries](https://aclanthology.org/2020.conll-1.12.pdf) ***CoNLL 2020***
+12) [Towards Faithfulness in Open Domain Table-to-text Generation from an Entity-centric View](https://arxiv.org/abs/2102.08585) ***AAAI 2021***
+13) [CDEvalSumm: An Empirical Study of Cross-Dataset Evaluation for Neural Summarization Systems](https://arxiv.org/abs/2010.05139) ***Findings of EMNLP2020***
 

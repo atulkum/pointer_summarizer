@@ -77,6 +77,6 @@ https://github.com/atulkum/pointer_summarizer/blob/master/data_util/batcher.py#L
 11) [A Corpus of Very Short Scientific Summaries](https://aclanthology.org/2020.conll-1.12) ***CoNLL 2020***
 12) [Towards Faithfulness in Open Domain Table-to-text Generation from an Entity-centric View](https://arxiv.org/abs/2102.08585) ***AAAI 2021***
 13) [CDEvalSumm: An Empirical Study of Cross-Dataset Evaluation for Neural Summarization Systems](https://aclanthology.org/2020.findings-emnlp.329) ***Findings of EMNLP2020***
-14) [A Study on Seq2seq for Sentence Compression
-in Vietnamese](https://aclanthology.org/2020.paclic-1.56) ***PACLIC 2020***
+14) [A Study on Seq2seq for Sentence Compression in Vietnamese](https://aclanthology.org/2020.paclic-1.56) ***PACLIC 2020***
+15) [Other Roles Matter! Enhancing Role-Oriented Dialogue Summarization via Role Interactions](https://aclanthology.org/2022.acl-long.182/) ***ACL 2022***
 

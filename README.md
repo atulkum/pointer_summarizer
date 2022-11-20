@@ -79,4 +79,4 @@ https://github.com/atulkum/pointer_summarizer/blob/master/data_util/batcher.py#L
 13) [CDEvalSumm: An Empirical Study of Cross-Dataset Evaluation for Neural Summarization Systems](https://aclanthology.org/2020.findings-emnlp.329) ***Findings of EMNLP2020***
 14) [A Study on Seq2seq for Sentence Compression in Vietnamese](https://aclanthology.org/2020.paclic-1.56) ***PACLIC 2020***
 15) [Other Roles Matter! Enhancing Role-Oriented Dialogue Summarization via Role Interactions](https://aclanthology.org/2022.acl-long.182/) ***ACL 2022***
-
+16) [Adapted by PaddlePaddle] (https://github.com/PaddlePaddle/PaddleNLP/tree/develop/examples/text_summarization/pointer_summarizer)

@@ -70,6 +70,7 @@ https://github.com/atulkum/pointer_summarizer/blob/master/data_util/batcher.py#L
 3) [Resurrecting Submodularity in Neural Abstractive Summarization](https://arxiv.org/abs/1911.03014v1)
 4) [StructSum: Summarization via Structured Representations](https://aclanthology.org/2021.eacl-main.220) ***EACL 2021***
 5) [Concept Pointer Network for Abstractive Summarization](https://arxiv.org/abs/1910.08486) ***EMNLP'2019*** https://github.com/wprojectsn/codes
+6) [PaddlePaddle version](https://github.com/PaddlePaddle/PaddleNLP/tree/develop/examples/text_summarization/pointer_summarizer)
 7) [VAE-PGN based Abstractive Model in Multi-stage Architecture for Text Summarization](https://www.aclweb.org/anthology/W19-8664/) ***INLG2019***
 8) [Clickbait? Sensational Headline Generation with Auto-tuned Reinforcement Learning](https://arxiv.org/abs/1909.03582)  ***EMNLP'2019*** https://github.com/HLTCHKUST/sensational_headline
 9) [Abstractive Spoken Document Summarization using Hierarchical Model with Multi-stage Attention Diversity Optimization](http://www.interspeech2020.org/index.php?m=content&c=index&a=show&catid=354&id=1173) ***INTERSPEECH 2020***
@@ -79,4 +80,4 @@ https://github.com/atulkum/pointer_summarizer/blob/master/data_util/batcher.py#L
 13) [CDEvalSumm: An Empirical Study of Cross-Dataset Evaluation for Neural Summarization Systems](https://aclanthology.org/2020.findings-emnlp.329) ***Findings of EMNLP2020***
 14) [A Study on Seq2seq for Sentence Compression in Vietnamese](https://aclanthology.org/2020.paclic-1.56) ***PACLIC 2020***
 15) [Other Roles Matter! Enhancing Role-Oriented Dialogue Summarization via Role Interactions](https://aclanthology.org/2022.acl-long.182/) ***ACL 2022***
-16) [PaddlePaddle version](https://github.com/PaddlePaddle/PaddleNLP/tree/develop/examples/text_summarization/pointer_summarizer)
+
